@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Zerion Swap Demo</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main
+      class="wrapper"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="popup-title"
+    >
+      <h2 id="popup-title">Quick Buy with Zerion</h2>
+      <section id="token-view">
+        <p><strong>Name:</strong> <span id="token-name">—</span></p>
+        <p><strong>Network:</strong> <span id="network">—</span></p>
+        <p><strong>Contract:</strong> <span id="contract">—</span></p>
+      </section>
+      <div id="contract-actions" style="margin: 16px 0"></div>
+      <form id="swap-form" autocomplete="off">
+        <label for="amount">Amount</label>
+        <input
+          type="number"
+          min="0"
+          placeholder="0.0"
+          id="amount"
+          aria-label="Amount to swap"
+          required
+        />
+        <button type="submit">Swap</button>
+      </form>
+      <div id="swap-message" aria-live="polite"></div>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
