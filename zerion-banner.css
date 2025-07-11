@@ -1,0 +1,308 @@
+/* Zerion Quick Buy Banner Styles */
+
+/* Banner container */
+.zqb-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  padding: 16px 16px 16px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  gap: 40px;
+  vertical-align: middle;
+  flex-wrap: wrap;
+  word-break: break-word;
+  z-index: 9999;
+  background: linear-gradient(
+    270deg,
+    var(--zerion-network-color) 0%,
+    #001f3f 100%
+  );
+  max-width: 700px;
+}
+.zqb-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--zqb-noise-texture);
+  background-repeat: repeat;
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+.zqb-banner > * {
+  position: relative;
+  z-index: 2;
+}
+.zqb-banner.responsive {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 16px 16px;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Info line layout */
+.zqb-info-line {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.zqb-name {
+  font-weight: 600;
+}
+.zqb-dot {
+  margin: 0 6px;
+  color: #fff;
+  font-size: 16px;
+  user-select: none;
+}
+.zqb-contract-arrow {
+  font-size: 16px;
+  margin-left: 4px;
+  text-decoration: none;
+  color: #fff;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* Contract link */
+.zqb-banner .zqb-link {
+  color: #fff;
+  text-decoration: underline;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Copy button */
+.zqb-banner .zqb-copy-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 6px;
+  font-size: 14px;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 4px;
+  text-align: center;
+  position: relative;
+  min-width: 64px; /* Enough for 'Copied!' */
+  transition: background 0.2s, min-width 0.2s;
+}
+.zqb-banner .zqb-copy-btn::after {
+  content: "Copied!";
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  display: block;
+}
+.zqb-banner .zqb-copy-btn.copy-failed {
+  background: #c00;
+}
+
+.zqb-banner .zqb-options-icon-bg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  cursor: pointer;
+  z-index: 10001;
+  margin-left: 8px;
+}
+.zqb-banner .zqb-options-icon-bg:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.zqb-banner .zqb-options-icon-img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.zqb-banner .zqb-options-icon-img circle {
+  fill: #fff;
+}
+
+.zqb-banner .zqb-buy-btn {
+  background: linear-gradient(180deg, #ffffff 60%, #c4c5c5 100%);
+  color: var(--zerion-network-color);
+  border: none;
+  border-radius: 16px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(32, 99, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.5);
+  transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.12s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.zqb-banner .zqb-buy-btn:active {
+  transform: translateY(2.5px);
+  box-shadow: 0 1px 2px rgba(32, 99, 255, 0.08), 0 0.5px 1px rgba(0, 0, 0, 0.25);
+  filter: brightness(0.96) contrast(1.1);
+}
+.zqb-banner.responsive .zqb-buy-btn {
+  width: 100%;
+  margin-left: 0;
+}
+
+.zqb-buy-btn-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+  color: var(--zerion-network-color);
+}
+
+/* Dashed border when dragging */
+.zqb-banner.zqb-options-active {
+  border: 2px dashed #fff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18), 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+.zqb-resize-handle {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  z-index: 10010;
+  cursor: ew-resize;
+  background: transparent;
+  transition: background 0.2s;
+}
+.zqb-resize-handle-left {
+  left: -5px;
+  border-radius: 8px 0 0 8px;
+}
+.zqb-resize-handle-right {
+  right: -5px;
+  border-radius: 0 8px 8px 0;
+}
+.zqb-resize-handle:hover {
+  background: color-mix(in srgb, var(--zerion-network-color) 50%, transparent);
+}
+.zqb-banner.zqb-resizing {
+  box-shadow: 0 0 0 4px rgba(32, 99, 255, 0.15), 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.zqb-banner.zqb-options-enabled:hover {
+  cursor: move;
+}
+.zqb-banner .zqb-copy-btn,
+.zqb-banner .zqb-buy-btn,
+.zqb-banner .zqb-options-icon-bg {
+  cursor: pointer;
+}
+.zqb-resize-handle {
+  cursor: ew-resize;
+}
+
+.shimmer {
+  overflow: hidden;
+}
+.shimmer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 40%,
+    rgba(255, 255, 255, 0.4) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.2s linear forwards;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+}
+@keyframes shimmer {
+  0% {
+    left: -150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+/* Dropdown menu styles */
+.zqb-dropdown-menu {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  background: #fff;
+  color: #222;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  min-width: 180px;
+  z-index: 10010;
+  padding: 8px 0;
+  display: none;
+  flex-direction: column;
+  font-size: 15px;
+}
+.zqb-dropdown-menu.open {
+  display: flex;
+}
+.zqb-dropdown-menu .zqb-dropdown-item {
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  color: #222;
+}
+.zqb-dropdown-menu .zqb-dropdown-item:hover {
+  background: #e8e9eb;
+}
+.zqb-dropdown-menu .zqb-dropdown-item.disabled {
+  color: #bbb;
+  cursor: default;
+  background: #fff;
+}
+
+/* Hide/show panel animations - fade only, no movement */
+.zqb-banner.zqb-hide-anim {
+  will-change: opacity;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  pointer-events: none;
+}
+.zqb-banner.zqb-show-anim {
+  will-change: opacity;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+}
+
+@keyframes zqb-fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.zqb-banner,
+.zqb-banner * {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Arial, sans-serif !important;
+}

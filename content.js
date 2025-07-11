@@ -28,55 +28,14 @@ const SUPPORTED_HOSTS = ["dexscreener.com", "gmgn.ai"]
 const DELAY = 800 // ms after hydration
 const WATCH = 500 // ms path check
 
-// Network color mapping
-const NETWORK_COLORS = {
-  solana: "#6c2eb7",
-  base: "#2063ff",
-  ethereum: "#2063ff",
-}
-
 // --- Utility Functions ---
 const $ = (selector, root = document) => root.querySelector(selector)
 const $$ = (selector, root = document) =>
   Array.from(root.querySelectorAll(selector))
 
-// Cache frequently used elements
-const elementCache = new Map()
-const getCachedElement = (selector, root = document) => {
-  const key = `${selector}_${root === document ? "doc" : "root"}`
-  if (!elementCache.has(key)) {
-    elementCache.set(key, root.querySelector(selector))
-  }
-  return elementCache.get(key)
-}
-
-/**
- * Debounce function for performance optimization
- * @param {Function} func
- * @param {number} wait
- * @returns {Function}
- */
-function debounce(func, wait) {
-  let timeout
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
-}
-
 /**
  * Parse token info from URL and DOM
- * Extracts network, contract address, token name, and symbol from the current page
- * Supports DexScreener and Interface Social platforms
- * @returns {Object} Token information object
- * @returns {string} returns.network - Network name (e.g., "ethereum", "base")
- * @returns {string} returns.contract - Contract address
- * @returns {string} returns.name - Token name
- * @returns {string} returns.symbol - Token symbol/ticker
+ * @returns {Object} { network, contract, name, symbol }
  */
 function parseInfo() {
   let network = ""
@@ -199,14 +158,12 @@ function isValidContract({ network, contract }) {
  * Inject Zerion banner CSS file into the page (only once)
  */
 function injectBannerCSS() {
-  if ($("#zerion-styles")) return
-
-  // Inject consolidated styles CSS
+  if ($("#zerion-banner-css")) return
   const link = document.createElement("link")
-  link.id = "zerion-styles"
+  link.id = "zerion-banner-css"
   link.rel = "stylesheet"
   link.type = "text/css"
-  link.href = chrome.runtime.getURL("styles.css")
+  link.href = chrome.runtime.getURL("zerion-banner.css")
   document.head.appendChild(link)
 }
 
@@ -233,7 +190,11 @@ function buildBanner(info) {
   try {
     localStorage.setItem("zqb_banner_network_color", color)
   } catch (e) {}
-  // Responsive styles are now handled by CSS classes
+  // Responsive styles
+  div.style.maxWidth = "95vw"
+  div.style.minWidth = "220px"
+  div.style.flexWrap = "wrap"
+  div.style.wordBreak = "break-word"
   // Capitalize network
   let network = info.network
     ? info.network.charAt(0).toUpperCase() + info.network.slice(1)
@@ -325,6 +286,8 @@ function buildBanner(info) {
   // Quick Buy button
   const btn = document.createElement("button")
   btn.className = "zqb-buy-btn"
+  btn.style.display = "flex"
+  btn.style.alignItems = "center"
   // Add improved inline SVG icon to the left of the button text
   const buyIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg")
   buyIcon.setAttribute("width", "20")
@@ -372,7 +335,6 @@ function buildBanner(info) {
   const observer = new MutationObserver(() => {
     if (!document.body.contains(div)) {
       observer.disconnect()
-      document.removeEventListener("keydown", onKeydown)
     }
   })
   observer.observe(document.body, { childList: true, subtree: true })
@@ -386,6 +348,9 @@ function buildBanner(info) {
   // Options icon (static 3-dots button)
   const optionsIconBg = document.createElement("span")
   optionsIconBg.className = "zqb-options-icon-bg"
+  optionsIconBg.style.cursor = "pointer"
+  optionsIconBg.style.position = "static"
+  // All other appearance styles are now handled by CSS only
 
   // 3-dots SVG icon
   const optionsIcon = document.createElementNS(
@@ -407,7 +372,8 @@ function buildBanner(info) {
 
   // --- Quick Buy + Options (3-dots) container ---
   const actionsContainer = document.createElement("div")
-  actionsContainer.className = "zqb-actions-container"
+  actionsContainer.style.display = "flex"
+  actionsContainer.style.alignItems = "center"
   actionsContainer.appendChild(btn)
   actionsContainer.appendChild(optionsIconBg)
 
@@ -436,8 +402,8 @@ function buildBanner(info) {
     optionsOffsetX = e.clientX - rect.left
     optionsOffsetY = e.clientY - rect.top
     // Bring to front while moving
-    div.classList.add("zqb-dragging")
-    document.body.classList.add("zqb-dragging")
+    div.style.zIndex = 10000
+    document.body.style.userSelect = "none"
     // Add dashed border
     div.classList.add("zqb-options-active")
     e.stopPropagation()
@@ -448,24 +414,21 @@ function buildBanner(info) {
     if (!isOptionsMoving || !optionsEnabled) return
     const left = `${e.clientX - optionsOffsetX}px`
     const top = `${e.clientY - optionsOffsetY}px`
-    div.style.setProperty("--zqb-left", left)
-    div.style.setProperty("--zqb-top", top)
-    div.classList.add("zqb-position-left")
+    div.style.left = left
+    div.style.top = top
+    div.style.right = "auto"
+    div.style.bottom = "auto"
+    div.style.transform = "none"
+    div.style.position = "fixed"
   }
   function onMouseUp(e) {
     if (isOptionsMoving) {
       isOptionsMoving = false
-      document.body.classList.remove("zqb-dragging")
+      document.body.style.userSelect = ""
       div.classList.remove("zqb-options-active")
       try {
-        localStorage.setItem(
-          "zqb_banner_left",
-          div.style.getPropertyValue("--zqb-left")
-        )
-        localStorage.setItem(
-          "zqb_banner_top",
-          div.style.getPropertyValue("--zqb-top")
-        )
+        localStorage.setItem("zqb_banner_left", div.style.left)
+        localStorage.setItem("zqb_banner_top", div.style.top)
       } catch (e) {
         console.warn("[ZQB] Could not save banner position:", e)
       }
@@ -492,13 +455,29 @@ function buildBanner(info) {
     console.warn("[ZQB] Could not access localStorage:", e)
   }
   if (savedLeft && savedTop) {
-    div.style.setProperty("--zqb-left", savedLeft)
-    div.style.setProperty("--zqb-top", savedTop)
-    div.classList.add("zqb-position-left")
+    div.style.left = savedLeft
+    div.style.top = savedTop
+    div.style.right = "auto"
+    div.style.bottom = "auto"
+    div.style.transform = "none"
+    div.style.position = "fixed"
   }
   // Remove reset button, add double-click to reset position and width on banner
   div.addEventListener("dblclick", function () {
-    resetBannerPosition(div)
+    try {
+      localStorage.removeItem("zqb_banner_left")
+      localStorage.removeItem("zqb_banner_top")
+      localStorage.removeItem("zqb_banner_width")
+    } catch (e) {
+      console.warn("[ZQB] Could not reset banner position:", e)
+    }
+    div.style.left = "50%"
+    div.style.top = ""
+    div.style.right = ""
+    div.style.bottom = "24px"
+    div.style.transform = "translateX(-50%)"
+    div.style.position = "fixed"
+    div.style.width = ""
   })
   // --- Add horizontal resize handles ---
   const leftHandle = document.createElement("div")
@@ -559,7 +538,7 @@ function buildBanner(info) {
     startWidth = div.offsetWidth
     startLeft = div.getBoundingClientRect().left
     resizeDirection = direction
-    document.body.classList.add("zqb-resizing")
+    document.body.style.userSelect = "none"
     div.classList.add("zqb-resizing")
   }
   leftHandle.addEventListener("mousedown", (e) => onResizeMouseDown(e, "left"))
@@ -572,27 +551,26 @@ function buildBanner(info) {
     let newWidth
     if (resizeDirection === "right") {
       newWidth = startWidth + (e.clientX - resizeStartX)
-      div.style.setProperty("--zqb-width", newWidth + "px")
-      div.classList.add("zqb-width-custom")
+      div.style.width = newWidth + "px"
     } else if (resizeDirection === "left") {
       newWidth = startWidth - (e.clientX - resizeStartX)
       let newLeft = startLeft + (e.clientX - resizeStartX)
-      div.style.setProperty("--zqb-width", newWidth + "px")
-      div.style.setProperty("--zqb-left", newLeft + "px")
-      div.classList.add("zqb-width-custom", "zqb-position-left")
+      // Convert newLeft to px relative to viewport, then to % of window for left style
+      div.style.width = newWidth + "px"
+      div.style.left = newLeft + "px"
+      div.style.right = "auto"
+      div.style.transform = "none"
+      div.style.position = "fixed"
     }
   }
   function onResizeMouseUp() {
     if (resizing) {
       resizing = false
-      document.body.classList.remove("zqb-resizing")
+      document.body.style.userSelect = ""
       div.classList.remove("zqb-resizing")
       // Save width
       try {
-        localStorage.setItem(
-          "zqb_banner_width",
-          div.style.getPropertyValue("--zqb-width")
-        )
+        localStorage.setItem("zqb_banner_width", div.style.width)
       } catch (e) {}
     }
   }
@@ -605,8 +583,7 @@ function buildBanner(info) {
     savedWidth = localStorage.getItem("zqb_banner_width")
   } catch (e) {}
   if (savedWidth) {
-    div.style.setProperty("--zqb-width", savedWidth)
-    div.classList.add("zqb-width-custom")
+    div.style.width = savedWidth
   }
   return div
 }
@@ -615,7 +592,6 @@ function buildBanner(info) {
 function createDropdownMenu(canResetPosition = true) {
   const menu = document.createElement("div")
   menu.className = "zqb-dropdown-menu"
-  menu.style.display = "none" // Explicitly hide by default
 
   const options = [
     { label: "Hide Panel", id: "hide" },
@@ -631,20 +607,31 @@ function createDropdownMenu(canResetPosition = true) {
     if (opt.id === "hide") {
       item.addEventListener("click", (e) => {
         e.stopPropagation()
-        hideDropdown(menu)
-        const banner = document.getElementById(BANNER_ID)
+        menu.classList.remove("open")
+        const banner = document.getElementById("zerion-top-banner")
         if (banner) {
-          banner.classList.add("hidden")
+          banner.style.display = "none"
           showFloatingRestoreButton()
         }
       })
     } else if (opt.id === "reset") {
       item.addEventListener("click", (e) => {
         e.stopPropagation()
-        hideDropdown(menu)
-        const banner = document.getElementById(BANNER_ID)
+        menu.classList.remove("open")
+        localStorage.removeItem("zqb_banner_left")
+        localStorage.removeItem("zqb_banner_top")
+        localStorage.removeItem("zqb_banner_right")
+        localStorage.removeItem("zqb_banner_bottom")
+        localStorage.removeItem("zqb_banner_width")
+        const banner = document.getElementById("zerion-top-banner")
         if (banner) {
-          resetBannerPosition(banner)
+          banner.style.left = "50%"
+          banner.style.top = ""
+          banner.style.right = ""
+          banner.style.bottom = "24px"
+          banner.style.transform = "translateX(-50%)"
+          banner.style.position = "fixed"
+          banner.style.width = ""
         }
         const menuBtn = banner?.querySelector(".zqb-options-icon-bg")
         if (menuBtn) {
@@ -655,14 +642,14 @@ function createDropdownMenu(canResetPosition = true) {
     } else if (opt.id === "about") {
       item.addEventListener("click", (e) => {
         e.stopPropagation()
-        hideDropdown(menu)
+        menu.classList.remove("open")
         showAboutModal()
       })
     } else {
       item.addEventListener("click", (e) => {
         e.stopPropagation()
         alert(opt.label + " clicked (placeholder)")
-        hideDropdown(menu)
+        menu.classList.remove("open")
       })
     }
     menu.appendChild(item)
@@ -670,33 +657,24 @@ function createDropdownMenu(canResetPosition = true) {
   return menu
 }
 
-// Helper functions for dropdown management
-function showDropdown(dropdown) {
-  dropdown.style.display = "block"
-  dropdown.classList.add("open")
-}
-
-function hideDropdown(dropdown) {
-  dropdown.style.display = "none"
-  dropdown.classList.remove("open")
-}
-
-function toggleDropdown(dropdown) {
-  if (
-    dropdown.style.display === "none" ||
-    !dropdown.classList.contains("open")
-  ) {
-    showDropdown(dropdown)
-  } else {
-    hideDropdown(dropdown)
-  }
-}
-
 function showAboutModal() {
   if (document.getElementById("zqb-about-modal")) return
   const modal = document.createElement("div")
   modal.id = "zqb-about-modal"
-  modal.className = "zqb-modal"
+  modal.style.position = "fixed"
+  modal.style.top = "50%"
+  modal.style.left = "50%"
+  modal.style.transform = "translate(-50%, -50%)"
+  modal.style.background = "#fff"
+  modal.style.color = "#222"
+  modal.style.borderRadius = "14px"
+  modal.style.boxShadow = "0 4px 32px rgba(0,0,0,0.18)"
+  modal.style.padding = "28px 32px 20px 32px"
+  modal.style.zIndex = 10050
+  modal.style.minWidth = "320px"
+  modal.style.maxWidth = "90vw"
+  modal.style.fontSize = "16px"
+  modal.style.textAlign = "center"
   modal.innerHTML = `
     <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Zerion Quick Buy Banner</div>
     <div style="margin-bottom:8px;">Version: 1.0.0</div>
@@ -726,14 +704,6 @@ function addMenuButtonToBanner(banner, canResetPosition = true) {
     dropdown = createDropdownMenu(canResetPosition)
     banner.appendChild(dropdown)
   }
-
-  // Ensure dropdown is hidden by default
-  hideDropdown(dropdown)
-
-  // Force the icon to show dots initially
-  menuBtn.innerHTML =
-    '<svg class="zqb-options-icon-img" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="16" cy="10" r="2" fill="currentColor"/></svg>'
-
   // SVGs for icons
   const dotsSVG =
     '<svg class="zqb-options-icon-img" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="16" cy="10" r="2" fill="currentColor"/></svg>'
@@ -742,22 +712,12 @@ function addMenuButtonToBanner(banner, canResetPosition = true) {
 
   menuBtn.onclick = (e) => {
     e.stopPropagation()
-    toggleDropdown(dropdown)
-    menuBtn.innerHTML = dropdown.classList.contains("open") ? crossSVG : dotsSVG
+    const isOpen = dropdown.classList.toggle("open")
+    menuBtn.innerHTML = isOpen ? crossSVG : dotsSVG
   }
-
-  // Close dropdown when clicking outside
   document.addEventListener("click", (e) => {
     if (!banner.contains(e.target)) {
-      hideDropdown(dropdown)
-      menuBtn.innerHTML = dotsSVG
-    }
-  })
-
-  // Close dropdown when pressing Escape key
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && dropdown.classList.contains("open")) {
-      hideDropdown(dropdown)
+      dropdown.classList.remove("open")
       menuBtn.innerHTML = dotsSVG
     }
   })
@@ -830,11 +790,31 @@ function injectQuickActionsWindow(contract) {
   // Create container
   const container = document.createElement("div")
   container.id = "zerion-quick-actions"
-  container.className = "zqb-quick-actions"
+  container.style.position = "fixed"
+  container.style.top = "24px"
+  container.style.right = "24px"
+  container.style.zIndex = "999999"
+  container.style.background = "white"
+  container.style.border = "1px solid #e0e0e0"
+  container.style.borderRadius = "10px"
+  container.style.boxShadow = "0 2px 12px rgba(0,0,0,0.12)"
+  container.style.padding = "14px 14px 10px 14px"
+  container.style.width = "200px"
+  container.style.fontFamily = "system-ui, sans-serif"
+  container.style.color = "#222"
+  container.style.display = "flex"
+  container.style.flexDirection = "column"
+  container.style.alignItems = "flex-start"
+  container.style.textAlign = "left"
+  container.style.opacity = "0"
+  container.style.transform = "translateY(-10px)"
+  container.style.transition = "opacity 0.35s, transform 0.35s"
 
   // Timer bar
   const timerBar = document.createElement("div")
-  timerBar.className = "zqb-timer-bar"
+  timerBar.style.height = "4px"
+  timerBar.style.width = "100%"
+  timerBar.style.background = "linear-gradient(90deg, #1da1f2, #6c47ff)"
   timerBar.style.borderRadius = "10px 10px 0 0"
   timerBar.style.margin = "-14px -14px 10px -14px"
   timerBar.style.transition = "width 0.2s linear"
@@ -842,45 +822,54 @@ function injectQuickActionsWindow(contract) {
 
   // Fade in after appending
   setTimeout(() => {
-    container.classList.add("show")
+    container.style.opacity = "1"
+    container.style.transform = "translateY(0)"
   }, 10)
 
   // Close button
   const closeBtn = document.createElement("button")
   closeBtn.innerText = "×"
   closeBtn.title = "Close"
-  closeBtn.className = "zqb-close-btn"
+  closeBtn.style.position = "absolute"
+  closeBtn.style.top = "6px"
+  closeBtn.style.right = "10px"
+  closeBtn.style.background = "none"
+  closeBtn.style.border = "none"
+  closeBtn.style.fontSize = "20px"
+  closeBtn.style.cursor = "pointer"
+  closeBtn.style.color = "#888"
   closeBtn.addEventListener("click", () => fadeOutAndRemove(container))
   container.appendChild(closeBtn)
 
   // Title
   const title = document.createElement("div")
-  const titleBold = document.createElement("b")
-  titleBold.textContent = "Zerion Quick Actions"
-  title.appendChild(titleBold)
-  title.className = "zqb-title"
+  title.innerHTML = `<b>Zerion Quick Actions</b>`
+  title.style.marginBottom = "8px"
+  title.style.textAlign = "left"
   container.appendChild(title)
 
   // Contract address
   const contractDiv = document.createElement("div")
-  const contractSpan = document.createElement("span")
-  contractSpan.textContent = contract
-  contractSpan.className = "zqb-contract-text"
-  contractDiv.appendChild(contractSpan)
-  contractDiv.className = "zqb-contract-display"
+  contractDiv.innerHTML = `<span style="font-family: monospace; font-size: 13px; display: inline-block; max-width: 100%; word-break: break-all; white-space: normal; vertical-align: bottom;">${contract}</span>`
+  contractDiv.style.marginBottom = "14px"
+  contractDiv.style.textAlign = "left"
+  contractDiv.style.width = "100%"
   container.appendChild(contractDiv)
 
   // Buttons
+  const btnStyle =
+    "margin-bottom: 8px; width: 100%; padding: 8px 0; border-radius: 6px; border: none; background: #1da1f2; color: white; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center;"
+
   const zerionBtn = document.createElement("button")
   zerionBtn.innerText = "Open in Zerion Web"
-  zerionBtn.className = "zqb-action-btn"
+  zerionBtn.style = btnStyle
   zerionBtn.onclick = () =>
     window.open(`https://app.zerion.io/search?q=${contract}`, "_blank")
   container.appendChild(zerionBtn)
 
   const buyBtn = document.createElement("button")
   buyBtn.innerText = "Quick Buy"
-  buyBtn.className = "zqb-action-btn"
+  buyBtn.style = btnStyle
   buyBtn.onclick = () => {
     if (
       chrome &&
@@ -899,7 +888,7 @@ function injectQuickActionsWindow(contract) {
 
   const dexBtn = document.createElement("button")
   dexBtn.innerText = "View on DexScreener"
-  dexBtn.className = "zqb-action-btn dexscreener"
+  dexBtn.style = btnStyle + "background: #6c47ff;"
   dexBtn.onclick = () =>
     window.open(`https://dexscreener.com/search?q=${contract}`, "_blank")
   container.appendChild(dexBtn)
@@ -939,10 +928,11 @@ function injectQuickActionsWindow(contract) {
 }
 
 function fadeOutAndRemove(el) {
-  el.classList.add("zqb-hide-anim")
+  el.style.opacity = "0"
+  el.style.transform = "translateY(-10px)"
   setTimeout(() => {
     if (el.parentNode) el.parentNode.removeChild(el)
-  }, 400)
+  }, 350)
 }
 
 // Listen for copy events and inject quick actions window if contract address is copied
@@ -994,14 +984,12 @@ if (document.readyState === "loading") {
   scheduleRefresh()
 }
 let lastPath = location.pathname
-const debouncedPathCheck = debounce(() => {
+setInterval(() => {
   if (location.pathname !== lastPath) {
     lastPath = location.pathname
     scheduleRefresh()
   }
 }, WATCH)
-
-setInterval(debouncedPathCheck, WATCH)
 
 chrome.runtime.onMessage.addListener((msg, _s, res) => {
   if (msg === "getInfo") {
@@ -1014,7 +1002,7 @@ function showFloatingRestoreButton() {
   if (document.getElementById("zqb-restore-btn")) return
   // Try to get color from banner or fallback
   let color = "#2063ff"
-  const banner = document.getElementById(BANNER_ID)
+  const banner = document.getElementById("zerion-top-banner")
   if (banner) {
     color = banner.getAttribute("data-network-color") || color
   } else if (localStorage.getItem("zqb_banner_network_color")) {
@@ -1022,17 +1010,32 @@ function showFloatingRestoreButton() {
   }
   const btn = document.createElement("div")
   btn.id = "zqb-restore-btn"
-  btn.className = "zqb-restore-btn"
+  btn.style.position = "fixed"
+  btn.style.bottom = "24px"
+  btn.style.right = "24px"
+  btn.style.width = "56px"
+  btn.style.height = "56px"
   btn.style.background = color
+  btn.style.borderRadius = "16px"
+  btn.style.boxShadow = "0 4px 24px rgba(0,0,0,0.18)"
+  btn.style.display = "flex"
+  btn.style.alignItems = "center"
+  btn.style.justifyContent = "center"
+  btn.style.cursor = "pointer"
+  btn.style.zIndex = 10020
+  btn.style.opacity = "0"
+  btn.style.transform = "translateY(100px)"
+  btn.style.transition = "opacity 0.4s, transform 0.4s"
   btn.innerHTML =
     '<svg width="28" height="28" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 20C2.23858 20 8.74228e-07 17.7614 8.74228e-07 15L0 4.99999C1.93283e-06 2.23857 2.23858 -6.11091e-06 5 -6.75517e-06L15 -7.62939e-06C17.7614 -7.62939e-06 20 2.23857 20 4.99999V15C20 17.7614 17.7614 20 15 20H5ZM11.4111 9.92248C11.884 10.1747 12.5435 10.0749 12.8674 9.62829C13.596 8.62694 14.4724 7.28567 15.2521 5.95702C15.4827 5.5638 15.2038 5.00011 14.6606 4.99999C12.493 4.99999 7.52854 5.00121 5.31555 5.00121C4.6359 5.00127 4.40403 5.86275 4.98596 6.22192C6.86926 7.38121 9.51985 8.91431 11.4111 9.92248ZM14.3073 15C14.9459 14.9999 15.214 14.1918 14.6857 13.811C12.8944 12.6938 10.5144 11.3231 8.55835 10.2661C8.08326 10.0104 7.44797 10.1059 7.05811 10.6616C6.3319 11.6969 5.46252 13.0028 4.86694 14.0314C4.61916 14.4485 4.94991 15 5.44434 15L14.3073 15Z" fill="#fff"/></svg>'
   document.body.appendChild(btn)
   setTimeout(() => {
-    btn.classList.add("show")
+    btn.style.opacity = "1"
+    btn.style.transform = "translateY(0)"
   }, 10)
   btn.onclick = function () {
     btn.remove()
-    const banner = document.getElementById(BANNER_ID)
+    const banner = document.getElementById("zerion-top-banner")
     if (banner) {
       // If the banner is in default position, set default styles BEFORE showing
       const left = localStorage.getItem("zqb_banner_left")
@@ -1049,7 +1052,7 @@ function showFloatingRestoreButton() {
         banner.style.position = "fixed"
         banner.style.width = ""
       }
-      banner.classList.remove("hidden")
+      banner.style.display = ""
       // Force reflow before animating
       void banner.offsetWidth
       banner.classList.add("zqb-show-anim")
@@ -1061,23 +1064,6 @@ function showFloatingRestoreButton() {
   }
   // Persist collapsed state
   localStorage.setItem("zqb_banner_collapsed", "1")
-}
-
-// Utility: Robustly reset banner to default position/state (used by both double-click and dropdown reset)
-function resetBannerPosition(banner) {
-  try {
-    localStorage.removeItem("zqb_banner_left")
-    localStorage.removeItem("zqb_banner_top")
-    localStorage.removeItem("zqb_banner_width")
-  } catch (e) {
-    console.warn("[ZQB] Could not reset banner position:", e)
-  }
-  banner.classList.remove("zqb-position-left", "zqb-width-custom")
-  banner.classList.add("zqb-position-default")
-  banner.style.removeProperty("--zqb-left")
-  banner.style.removeProperty("--zqb-top")
-  banner.style.removeProperty("--zqb-width")
-  banner.style.width = ""
 }
 
 console.log("ZERION content.js loaded")

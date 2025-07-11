@@ -11,11 +11,6 @@ let lastCopiedContract = null
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg && msg.type === "contractCopied" && msg.contract) {
-      // Validate contract format
-      if (!/^0x[a-fA-F0-9]{40}$/.test(msg.contract)) {
-        sendResponse({ error: "Invalid contract format" })
-        return true
-      }
       lastCopiedContract = msg.contract
       chrome.action.openPopup()
       sendResponse({ ok: 1 })
@@ -44,7 +39,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ error: "Invalid message format" })
     }
   } catch (e) {
-    console.error("Background script error:", e)
     sendResponse({ error: "Internal error", details: e.message })
   }
   return true
@@ -64,14 +58,8 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 })
 
 // === Context Menu for Contract Addresses ===
-// Contract validation constants
 const CONTRACT_REGEX = /^0x[a-fA-F0-9]{40}$/
 const CHAIN = "ethereum" // You can make this dynamic if needed
-
-// Centralized contract validation
-function isValidContractAddress(contract) {
-  return CONTRACT_REGEX.test(contract)
-}
 
 // Create context menu on install or update
 chrome.runtime.onInstalled.addListener(() => {
@@ -110,7 +98,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // Handle menu actions
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   const contract = info.selectionText && info.selectionText.trim()
-  if (!contract || !isValidContractAddress(contract)) {
+  if (!contract || !CONTRACT_REGEX.test(contract)) {
     chrome.notifications.create({
       type: "basic",
       iconUrl: "icons/icon-48.png",

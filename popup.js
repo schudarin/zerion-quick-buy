@@ -14,47 +14,25 @@ function showTokenInfo(info) {
 // Show loading message while fetching token info
 const messageEl = $("swap-message")
 messageEl.textContent = "Loading token info..."
-messageEl.className = "zqb-message loading"
+messageEl.style.color = "#333"
 
 // Try to get token info from background, fallback to content script if needed
 chrome.runtime.sendMessage("getTokenInfo", (tokenInfo) => {
-  try {
-    if (tokenInfo) {
-      showTokenInfo(tokenInfo)
-      messageEl.textContent = ""
-      messageEl.className = "zqb-message"
-    } else {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) {
-          console.error("Tab query error:", chrome.runtime.lastError)
-          messageEl.textContent = "Error: Could not access current tab."
-          messageEl.className = "zqb-message error"
-          return
+  if (tokenInfo) {
+    showTokenInfo(tokenInfo)
+    messageEl.textContent = ""
+  } else {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, "getInfo", (resp) => {
+        if (resp) {
+          showTokenInfo(resp)
+          messageEl.textContent = ""
+        } else {
+          messageEl.textContent = "Could not load token info."
+          messageEl.style.color = "red"
         }
-
-        chrome.tabs.sendMessage(tabs[0].id, "getInfo", (resp) => {
-          if (chrome.runtime.lastError) {
-            console.error("Message send error:", chrome.runtime.lastError)
-            messageEl.textContent = "Error: Could not communicate with page."
-            messageEl.className = "zqb-message error"
-            return
-          }
-
-          if (resp) {
-            showTokenInfo(resp)
-            messageEl.textContent = ""
-            messageEl.className = "zqb-message"
-          } else {
-            messageEl.textContent = "Could not load token info."
-            messageEl.className = "zqb-message error"
-          }
-        })
       })
-    }
-  } catch (error) {
-    console.error("Popup error:", error)
-    messageEl.textContent = "Unexpected error occurred."
-    messageEl.className = "zqb-message error"
+    })
   }
 })
 
@@ -64,15 +42,14 @@ $("swap-form").addEventListener("submit", (e) => {
   const amount = $("amount").value.trim()
   if (!amount || isNaN(amount) || Number(amount) <= 0) {
     messageEl.textContent = "Please enter a valid amount."
-    messageEl.className = "zqb-message error"
+    messageEl.style.color = "red"
     return
   }
   // Show success message for demo
   messageEl.textContent = "Swap successful!"
-  messageEl.className = "zqb-message success"
+  messageEl.style.color = "green"
   setTimeout(() => {
     messageEl.textContent = ""
-    messageEl.className = "zqb-message"
   }, 2000)
 })
 
@@ -85,44 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const contract = response && response.contract
     const container = document.getElementById("contract-actions")
     if (contract && container) {
-      // Clear container
-      container.innerHTML = ""
-
-      // Create contract info div
-      const contractInfo = document.createElement("div")
-      contractInfo.className = "zqb-contract-info"
-      contractInfo.textContent = "Copied contract: "
-
-      const contractSpan = document.createElement("span")
-      contractSpan.textContent = contract
-      contractSpan.className = "zqb-contract-address"
-      contractInfo.appendChild(contractSpan)
-      container.appendChild(contractInfo)
-
-      // Create buttons
-      const openZerionBtn = document.createElement("button")
-      openZerionBtn.id = "open-zerion"
-      openZerionBtn.textContent = "Open in Zerion Web"
-      openZerionBtn.className = "zqb-action-button zerion"
-      openZerionBtn.setAttribute(
-        "aria-label",
-        "Open token in Zerion Web application"
-      )
-      container.appendChild(openZerionBtn)
-
-      const quickBuyBtn = document.createElement("button")
-      quickBuyBtn.id = "quick-buy"
-      quickBuyBtn.textContent = "Quick Buy"
-      quickBuyBtn.className = "zqb-action-button quick-buy"
-      quickBuyBtn.setAttribute("aria-label", "Quick buy this token")
-      container.appendChild(quickBuyBtn)
-
-      const openDexscreenerBtn = document.createElement("button")
-      openDexscreenerBtn.id = "open-dexscreener"
-      openDexscreenerBtn.textContent = "View on DexScreener"
-      openDexscreenerBtn.className = "zqb-action-button dexscreener"
-      openDexscreenerBtn.setAttribute("aria-label", "View token on DexScreener")
-      container.appendChild(openDexscreenerBtn)
+      container.innerHTML = `
+        <div style="margin-bottom: 8px; font-weight: bold;">Copied contract: <span style="font-family: monospace;">${contract}</span></div>
+        <button id="open-zerion">Open in Zerion Web</button>
+        <button id="quick-buy">Quick Buy</button>
+        <button id="open-dexscreener">View on DexScreener</button>
+      `
       document.getElementById("open-zerion").onclick = () => {
         window.open(`https://app.zerion.io/search?q=${contract}`, "_blank")
       }
@@ -134,11 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
         window.open(`https://dexscreener.com/search?q=${contract}`, "_blank")
       }
     } else if (container) {
-      const fallbackDiv = document.createElement("div")
-      fallbackDiv.className = "zqb-fallback-message"
-      fallbackDiv.textContent =
-        "Copy a contract address (0x...) to see quick actions here."
-      container.appendChild(fallbackDiv)
+      container.innerHTML =
+        '<div style="color: #888;">Copy a contract address (0x...) to see quick actions here.</div>'
     }
   })
 })
