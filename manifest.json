@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Quick Buy with Zerion",
-  "description": "Top banner Zerion swap on DexScreener token pages with metadata lookup.",
+  "description": "Adds a Zerion Quick Buy banner on supported token pages for streamlined swaps.",
   "version": "1.6",
   "permissions": [
     "activeTab",
@@ -26,14 +26,22 @@
   "web_accessible_resources": [
     {
       "resources": ["zerion-banner.css", "icons/banner-icons/drag-icon.svg"],
-      "matches": ["<all_urls>"]
+      "matches": ["https://dexscreener.com/*", "https://app.interface.social/*"]
     }
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "https://dexscreener.com/*",
+        "https://app.interface.social/*"
+      ],
+      "js": ["zqb-utils.js", "quick-actions.js", "content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["zqb-utils.js", "quick-actions.js", "copy-listener.js"],
+      "run_at": "document_start"
     }
   ],
   "action": { "default_popup": "popup.html" },

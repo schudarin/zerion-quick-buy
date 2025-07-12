@@ -35,6 +35,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         tabTokenCache[sender.tab.id] = null
       }
       sendResponse(info)
+    } else if (msg && msg.type === "getLastCopiedContract") {
+      // Provide the most recently copied contract address to the popup
+      sendResponse({ contract: lastCopiedContract })
+      return true
     } else {
       sendResponse({ error: "Invalid message format" })
     }
@@ -42,14 +46,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ error: "Internal error", details: e.message })
   }
   return true
-})
-
-// Provide contract address to popup on request
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg && msg.type === "getLastCopiedContract") {
-    sendResponse({ contract: lastCopiedContract })
-    return true
-  }
 })
 
 // Clean up cache when tab is closed

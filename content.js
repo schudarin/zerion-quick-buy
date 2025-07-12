@@ -24,7 +24,7 @@
 // --- Constants ---
 const BANNER_ID = "zerion-top-banner"
 const HOSTED_NETWORKS = ["solana", "base", "ethereum"]
-const SUPPORTED_HOSTS = ["dexscreener.com", "gmgn.ai"]
+const SUPPORTED_HOSTS = ["dexscreener.com"]
 const DELAY = 800 // ms after hydration
 const WATCH = 500 // ms path check
 
@@ -187,6 +187,8 @@ function buildBanner(info) {
   const color = networkColors[info.network.toLowerCase()] || "#2063ff"
   div.style.setProperty("--zerion-network-color", color)
   div.setAttribute("data-network-color", color)
+  // Store current contract for quick comparison on subsequent refreshes
+  div.setAttribute("data-contract", info.contract.toLowerCase())
   try {
     localStorage.setItem("zqb_banner_network_color", color)
   } catch (e) {}
@@ -724,6 +726,9 @@ function addMenuButtonToBanner(banner, canResetPosition = true) {
 }
 
 // Refresh the banner based on current page state
+let refreshAttempts = 0
+const MAX_REFRESH_ATTEMPTS = 6 // ~3 s total (6×500 ms)
+
 function refreshBanner() {
   const info = parseInfo()
   console.log("[ZQB] parseInfo:", info)
@@ -742,15 +747,32 @@ function refreshBanner() {
     return
   }
   const old = document.getElementById(BANNER_ID)
+  // If banner already exists and is showing the same contract, skip update
+  if (
+    old &&
+    old.getAttribute("data-contract") === info.contract.toLowerCase()
+  ) {
+    console.debug("[ZQB] Banner already up-to-date, skipping refresh")
+    return
+  }
   const valid = isValidContract(info)
   console.log("[ZQB] isValidContract:", valid)
   if (!valid) {
+    // Retry a few times in case SPA navigation hasn't fully rendered yet
+    if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+      refreshAttempts++
+      setTimeout(refreshBanner, 500)
+    } else {
+      refreshAttempts = 0
+    }
     if (old) {
       old.remove()
     }
     console.debug("[ZQB] Not a valid contract/network, banner not shown")
     return
   }
+  // Reset attempt counter once we have a valid contract
+  refreshAttempts = 0
   // No API, just use info from parseInfo
   console.log("[ZQB] final info for banner:", info)
   if (old) {
@@ -758,7 +780,15 @@ function refreshBanner() {
     setTimeout(() => {
       old.classList.remove("shimmer")
       old.remove()
-      const bannerDiv = buildBanner(info)
+      // Recompute token info as the DOM may have updated during the delay
+      const latestInfo = parseInfo()
+      if (!isValidContract(latestInfo)) {
+        console.debug(
+          "[ZQB] Skipping banner rebuild – contract became invalid after delay"
+        )
+        return
+      }
+      const bannerDiv = buildBanner(latestInfo)
       // Check collapsed state
       if (localStorage.getItem("zqb_banner_collapsed") === "1") {
         bannerDiv.style.display = "none"
@@ -782,149 +812,21 @@ function scheduleRefresh() {
   window.__zqbTimer = setTimeout(refreshBanner, DELAY)
 }
 
-function injectQuickActionsWindow(contract) {
-  // Remove any existing window
-  const existing = document.getElementById("zerion-quick-actions")
-  if (existing) existing.remove()
-
-  // Create container
-  const container = document.createElement("div")
-  container.id = "zerion-quick-actions"
-  container.style.position = "fixed"
-  container.style.top = "24px"
-  container.style.right = "24px"
-  container.style.zIndex = "999999"
-  container.style.background = "white"
-  container.style.border = "1px solid #e0e0e0"
-  container.style.borderRadius = "10px"
-  container.style.boxShadow = "0 2px 12px rgba(0,0,0,0.12)"
-  container.style.padding = "14px 14px 10px 14px"
-  container.style.width = "200px"
-  container.style.fontFamily = "system-ui, sans-serif"
-  container.style.color = "#222"
-  container.style.display = "flex"
-  container.style.flexDirection = "column"
-  container.style.alignItems = "flex-start"
-  container.style.textAlign = "left"
-  container.style.opacity = "0"
-  container.style.transform = "translateY(-10px)"
-  container.style.transition = "opacity 0.35s, transform 0.35s"
-
-  // Timer bar
-  const timerBar = document.createElement("div")
-  timerBar.style.height = "4px"
-  timerBar.style.width = "100%"
-  timerBar.style.background = "linear-gradient(90deg, #1da1f2, #6c47ff)"
-  timerBar.style.borderRadius = "10px 10px 0 0"
-  timerBar.style.margin = "-14px -14px 10px -14px"
-  timerBar.style.transition = "width 0.2s linear"
-  container.appendChild(timerBar)
-
-  // Fade in after appending
-  setTimeout(() => {
-    container.style.opacity = "1"
-    container.style.transform = "translateY(0)"
-  }, 10)
-
-  // Close button
-  const closeBtn = document.createElement("button")
-  closeBtn.innerText = "×"
-  closeBtn.title = "Close"
-  closeBtn.style.position = "absolute"
-  closeBtn.style.top = "6px"
-  closeBtn.style.right = "10px"
-  closeBtn.style.background = "none"
-  closeBtn.style.border = "none"
-  closeBtn.style.fontSize = "20px"
-  closeBtn.style.cursor = "pointer"
-  closeBtn.style.color = "#888"
-  closeBtn.addEventListener("click", () => fadeOutAndRemove(container))
-  container.appendChild(closeBtn)
-
-  // Title
-  const title = document.createElement("div")
-  title.innerHTML = `<b>Zerion Quick Actions</b>`
-  title.style.marginBottom = "8px"
-  title.style.textAlign = "left"
-  container.appendChild(title)
-
-  // Contract address
-  const contractDiv = document.createElement("div")
-  contractDiv.innerHTML = `<span style="font-family: monospace; font-size: 13px; display: inline-block; max-width: 100%; word-break: break-all; white-space: normal; vertical-align: bottom;">${contract}</span>`
-  contractDiv.style.marginBottom = "14px"
-  contractDiv.style.textAlign = "left"
-  contractDiv.style.width = "100%"
-  container.appendChild(contractDiv)
-
-  // Buttons
-  const btnStyle =
-    "margin-bottom: 8px; width: 100%; padding: 8px 0; border-radius: 6px; border: none; background: #1da1f2; color: white; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center;"
-
-  const zerionBtn = document.createElement("button")
-  zerionBtn.innerText = "Open in Zerion Web"
-  zerionBtn.style = btnStyle
-  zerionBtn.onclick = () =>
-    window.open(`https://app.zerion.io/search?q=${contract}`, "_blank")
-  container.appendChild(zerionBtn)
-
-  const buyBtn = document.createElement("button")
-  buyBtn.innerText = "Quick Buy"
-  buyBtn.style = btnStyle
-  buyBtn.onclick = () => {
-    if (
-      chrome &&
-      chrome.runtime &&
-      chrome.runtime.id &&
-      chrome.action &&
-      chrome.action.openPopup
-    ) {
-      chrome.action.openPopup()
-    } else {
-      // fallback: open the extension popup.html directly if possible
-      window.open(chrome.runtime.getURL("popup.html"), "_blank")
+// Fallback: periodic path check (cheap) in case the site changes URL without using History API
+;(function startPathPolling() {
+  let polledPath = location.pathname
+  setInterval(() => {
+    if (location.pathname !== polledPath) {
+      polledPath = location.pathname
+      scheduleRefresh()
     }
-  }
-  container.appendChild(buyBtn)
+  }, WATCH)
+})()
 
-  const dexBtn = document.createElement("button")
-  dexBtn.innerText = "View on DexScreener"
-  dexBtn.style = btnStyle + "background: #6c47ff;"
-  dexBtn.onclick = () =>
-    window.open(`https://dexscreener.com/search?q=${contract}`, "_blank")
-  container.appendChild(dexBtn)
-
-  document.body.appendChild(container)
-
-  // Auto-dismiss logic with visible timer
-  let dismissTimer = null
-  let remaining = 4000
-  let lastStart = Date.now()
-  let timerInterval = null
-  function updateTimerBar() {
-    const percent = Math.max(0, remaining / 4000)
-    timerBar.style.width = percent * 100 + "%"
+function openSharedQuickActions(contract) {
+  if (typeof window.injectQuickActionsWindow === "function") {
+    window.injectQuickActionsWindow(contract)
   }
-  function startTimer() {
-    lastStart = Date.now()
-    dismissTimer = setTimeout(() => fadeOutAndRemove(container), remaining)
-    timerInterval = setInterval(() => {
-      remaining = Math.max(0, 4000 - (Date.now() - lastStart))
-      updateTimerBar()
-    }, 50)
-  }
-  function pauseTimer() {
-    clearTimeout(dismissTimer)
-    clearInterval(timerInterval)
-    remaining -= Date.now() - lastStart
-    updateTimerBar()
-  }
-  function resumeTimer() {
-    startTimer()
-  }
-  container.addEventListener("mouseenter", pauseTimer)
-  container.addEventListener("mouseleave", resumeTimer)
-  updateTimerBar()
-  startTimer()
 }
 
 function fadeOutAndRemove(el) {
@@ -946,7 +848,7 @@ function fadeOutAndRemove(el) {
     if (copiedText) {
     }
     if (/^0x[a-fA-F0-9]{40}$/.test(copiedText)) {
-      injectQuickActionsWindow(copiedText)
+      openSharedQuickActions(copiedText)
     }
   })
 })()
@@ -965,7 +867,7 @@ function fadeOutAndRemove(el) {
             // Extract contract address from URL
             const match = window.location.pathname.match(/0x[a-fA-F0-9]{40}/)
             if (match) {
-              injectQuickActionsWindow(match[0])
+              openSharedQuickActions(match[0])
             }
             break
           }
@@ -983,13 +885,33 @@ if (document.readyState === "loading") {
 } else {
   scheduleRefresh()
 }
-let lastPath = location.pathname
-setInterval(() => {
-  if (location.pathname !== lastPath) {
-    lastPath = location.pathname
-    scheduleRefresh()
+
+// --- Efficient SPA navigation detection ---
+;(function observeLocationChanges() {
+  let lastPath = location.pathname
+
+  const checkPath = () => {
+    if (location.pathname !== lastPath) {
+      lastPath = location.pathname
+      scheduleRefresh()
+    }
   }
-}, WATCH)
+
+  // Monkey-patch History API methods to detect client-side route changes
+  const patchHistoryMethod = (method) => {
+    const original = history[method]
+    history[method] = function () {
+      const result = original.apply(this, arguments)
+      checkPath()
+      return result
+    }
+  }
+  patchHistoryMethod("pushState")
+  patchHistoryMethod("replaceState")
+
+  // Also listen for back/forward navigation
+  window.addEventListener("popstate", checkPath)
+})()
 
 chrome.runtime.onMessage.addListener((msg, _s, res) => {
   if (msg === "getInfo") {

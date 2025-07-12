@@ -58,29 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const amountInput = $("amount")
   if (amountInput) amountInput.focus()
 
-  chrome.runtime.sendMessage({ type: "getLastCopiedContract" }, (response) => {
-    const contract = response && response.contract
-    const container = document.getElementById("contract-actions")
-    if (contract && container) {
-      container.innerHTML = `
-        <div style="margin-bottom: 8px; font-weight: bold;">Copied contract: <span style="font-family: monospace;">${contract}</span></div>
-        <button id="open-zerion">Open in Zerion Web</button>
-        <button id="quick-buy">Quick Buy</button>
-        <button id="open-dexscreener">View on DexScreener</button>
-      `
-      document.getElementById("open-zerion").onclick = () => {
-        window.open(`https://app.zerion.io/search?q=${contract}`, "_blank")
-      }
-      document.getElementById("quick-buy").onclick = () => {
-        // Implement your quick buy logic here, or open a relevant page
-        window.open(`https://app.zerion.io/search?q=${contract}`, "_blank")
-      }
-      document.getElementById("open-dexscreener").onclick = () => {
-        window.open(`https://dexscreener.com/search?q=${contract}`, "_blank")
-      }
-    } else if (container) {
-      container.innerHTML =
-        '<div style="color: #888;">Copy a contract address (0x...) to see quick actions here.</div>'
-    }
-  })
+  // Hide contract-actions section in popup; handled by standalone quick actions overlay
+  const ca = document.getElementById("contract-actions")
+  if (ca) ca.style.display = "none"
 })
