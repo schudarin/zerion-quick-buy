@@ -81,26 +81,42 @@
     title.style.marginBottom = "8px"
     container.appendChild(title)
 
-    // Contract display line
+    // Contract display line - show in 2 lines
     const contractDiv = document.createElement("div")
     Object.assign(contractDiv.style, {
       marginBottom: "14px",
       textAlign: "left",
       width: "100%",
     })
-    const contractSpan = document.createElement("span")
-    Object.assign(contractSpan.style, {
+    
+    // Split contract for better readability
+    const contractLength = contract.length
+    const halfLength = Math.ceil(contractLength / 2)
+    const firstHalf = contract.substring(0, halfLength)
+    const secondHalf = contract.substring(halfLength)
+    
+    // First line
+    const firstLine = document.createElement("div")
+    Object.assign(firstLine.style, {
       fontFamily: "monospace",
       fontSize: "13px",
-      display: "inline-block",
-      maxWidth: "100%",
-      wordBreak: "break-all",
-      overflowWrap: "anywhere",
-      whiteSpace: "normal",
-      verticalAlign: "bottom",
+      lineHeight: "1.4",
+      marginBottom: "2px",
     })
-    contractSpan.textContent = contract
-    contractDiv.appendChild(contractSpan)
+    firstLine.textContent = firstHalf
+    contractDiv.appendChild(firstLine)
+    
+    // Second line
+    const secondLine = document.createElement("div")
+    Object.assign(secondLine.style, {
+      fontFamily: "monospace",
+      fontSize: "13px",
+      lineHeight: "1.4",
+      color: "#666",
+    })
+    secondLine.textContent = secondHalf
+    contractDiv.appendChild(secondLine)
+    
     container.appendChild(contractDiv)
 
     // Buttons
