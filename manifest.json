@@ -35,12 +35,17 @@
         "https://dexscreener.com/*",
         "https://app.interface.social/*"
       ],
-      "js": ["zqb-utils.js", "quick-actions.js", "content.js"],
+      "js": ["zqb-utils.js", "quick-actions.js", "zqb-banner.js", "content.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["<all_urls>"],
-      "js": ["zqb-utils.js", "quick-actions.js", "copy-listener.js"],
+      "js": [
+        "zqb-utils.js",
+        "quick-actions.js",
+        "zqb-banner.js",
+        "copy-listener.js"
+      ],
       "run_at": "document_start"
     }
   ],
