@@ -66,6 +66,12 @@ chrome.runtime.onInstalled.addListener(() => {
     visible: true,
   })
   chrome.contextMenus.create({
+    id: "zerion-getinfo",
+    parentId: "zerion-root",
+    title: "Get Token Info",
+    contexts: ["selection"],
+  })
+  chrome.contextMenus.create({
     id: "zerion-open",
     parentId: "zerion-root",
     title: "Open in Zerion Web",
@@ -94,6 +100,14 @@ chrome.runtime.onInstalled.addListener(() => {
 // Handle menu actions
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   const contract = info.selectionText && info.selectionText.trim()
+  if (info.menuItemId === "zerion-getinfo") {
+    // Send message to content script to show token info popup
+    chrome.tabs.sendMessage(tab.id, {
+      type: "SHOW_TOKEN_INFO_POPUP",
+      text: contract,
+    })
+    return
+  }
   if (!contract || !CONTRACT_REGEX.test(contract)) {
     chrome.notifications.create({
       type: "basic",

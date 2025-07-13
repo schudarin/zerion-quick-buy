@@ -2,24 +2,22 @@
 // Injects a banner on supported DexScreener token pages for quick Zerion swaps
 
 // --- Grain Texture Injection ---
-;(function generateZerionBannerGrain() {
-  const size = 128
-  const canvas = document.createElement("canvas")
-  canvas.width = canvas.height = size
-  const ctx = canvas.getContext("2d")
-  const img = ctx.createImageData(size, size)
-  for (let i = 0; i < img.data.length; i += 4) {
-    const v = Math.random() * 255
-    img.data[i] = img.data[i + 1] = img.data[i + 2] = v
-    img.data[i + 3] = 180 // increased alpha for more visible grain
+window.ensureNoiseTexture && window.ensureNoiseTexture()
+
+// --- Context Menu Integration ---
+window.addEventListener("message", (event) => {
+  if (event?.data?.type === "SHOW_TOKEN_INFO_POPUP" && event.data.text) {
+    console.log("[TokenInfo] Received SHOW_TOKEN_INFO_POPUP:", event.data.text)
+    if (
+      window.tokenInfoPopup &&
+      typeof window.tokenInfoPopup.createPopup === "function"
+    ) {
+      window.tokenInfoPopup.createPopup(event.data.text)
+    } else {
+      console.warn("[TokenInfo] tokenInfoPopup not available")
+    }
   }
-  ctx.putImageData(img, 0, 0)
-  const dataURL = canvas.toDataURL("image/png")
-  document.documentElement.style.setProperty(
-    "--zqb-noise-texture",
-    `url(${dataURL})`
-  )
-})()
+})
 
 // --- Constants ---
 const BANNER_ID = "zerion-top-banner"
@@ -153,5 +151,4 @@ function isValidContract({ network, contract }) {
   // Default EVM: 40 hex chars
   return /^0x[a-fA-F0-9]{40}$/.test(contract)
 }
-
 console.log("ZERION content.js loaded")

@@ -25,8 +25,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["Banner/zqb-banner.css"],
+      "resources": ["Banner/zqb-banner.css", "TokenInfo/token-info.css"],
       "matches": ["https://dexscreener.com/*", "https://app.interface.social/*"]
+    },
+    {
+      "resources": ["TokenInfo/token-info.css"],
+      "matches": ["<all_urls>"]
     }
   ],
   "content_scripts": [
@@ -39,6 +43,8 @@
         "Banner/zqb-utils.js",
         "QuickActions/quick-actions.js",
         "Banner/zqb-banner.js",
+        "TokenInfo/fake-data.js",
+        "TokenInfo/token-info.js",
         "content.js"
       ],
       "run_at": "document_idle"
@@ -49,6 +55,8 @@
         "Banner/zqb-utils.js",
         "QuickActions/quick-actions.js",
         "Banner/zqb-banner.js",
+        "TokenInfo/fake-data.js",
+        "TokenInfo/token-info.js",
         "QuickActions/copy-listener.js"
       ],
       "run_at": "document_start"
