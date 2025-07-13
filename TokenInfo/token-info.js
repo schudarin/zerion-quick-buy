@@ -461,10 +461,6 @@ window.TokenInfoPopup = TokenInfoPopup
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "SHOW_TOKEN_INFO_POPUP" && msg.text) {
-    console.log(
-      "[TokenInfo] Received SHOW_TOKEN_INFO_POPUP (runtime):",
-      msg.text
-    )
     if (
       window.tokenInfoPopup &&
       typeof window.tokenInfoPopup.createPopup === "function"

@@ -7,6 +7,7 @@ A Chrome browser extension that adds Zerion quick buy functionality to cryptocur
 - **Smart Banner Integration**: Automatically detects token pages on supported sites and injects a customizable Zerion banner
 - **Quick Actions Window**: Appears when copying contract addresses from any website
 - **Context Menu Integration**: Right-click on contract addresses for quick actions
+- **Token Info Popup**: Hold Shift + select text to instantly view token details (contract addresses, tickers, or Solana addresses)
 - **Multi-Chain Support**: Works with Ethereum, Base, and Solana networks
 - **Responsive Design**: Adapts to different screen sizes and can be dragged/resized
 - **Copy Detection**: Automatically detects when cryptocurrency contract addresses are copied
@@ -16,6 +17,7 @@ A Chrome browser extension that adds Zerion quick buy functionality to cryptocur
 - **DexScreener**: `dexscreener.com` (Ethereum, Base, Solana)
 - **Interface.social**: `app.interface.social` (Multi-chain token pages)
 - **Universal Copy Detection**: Works on any website when contract addresses are copied
+- **Token Info Popup**: Available on all websites via Shift+select text
 
 ## 📁 Project Structure
 
@@ -35,6 +37,10 @@ zerion-inj/
 ├── QuickActions/
 │   ├── quick-actions.js    # Shared quick actions overlay functionality
 │   └── copy-listener.js    # Detects copied contract addresses globally
+├── TokenInfo/
+│   ├── token-info.js       # Token info popup functionality with Shift+select
+│   ├── token-info.css      # Token info popup styling
+│   └── fake-data.js        # Fake token data generator for demonstration
 └── icons/                  # Extension icons (16px, 32px, 48px, 128px)
 ```
 
@@ -55,6 +61,8 @@ zerion-inj/
 - **Banner Module** (`Banner/zqb-banner.js`): Creates and manages the Zerion banner UI
 - **Copy Listener** (`QuickActions/copy-listener.js`): Detects contract address copying on all websites
 - **Quick Actions** (`QuickActions/quick-actions.js`): Provides floating action window
+- **Token Info** (`TokenInfo/token-info.js`): Shift+select text detection and popup display
+- **Fake Data Generator** (`TokenInfo/fake-data.js`): Generates consistent demo token data
 
 #### 3. **Popup Interface**
 
@@ -110,6 +118,34 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 })
 ```
 
+### Token Info Popup Feature
+
+The Token Info popup provides instant access to token details when holding Shift and selecting text:
+
+#### Usage
+
+1. **Hold Shift key** and select any text on any website
+2. **Valid tokens** will trigger a popup showing detailed information:
+   - Contract addresses (Ethereum: `0x...`, Solana: Base58 format)
+   - Token tickers (starting with `$`, e.g., `$DOGE`)
+   - Solana addresses (32-44 alphanumeric characters)
+
+#### Features
+
+- **Real-time Chart**: Animated price chart with gradient fill
+- **Token Stats**: Age, FDV, Market Cap, Volume, Holders
+- **Action Buttons**: "Open in Zerion" and "Quick Buy"
+- **Network Detection**: Automatically detects network based on address format
+- **Responsive Design**: Adapts to screen size and position
+
+#### Technical Implementation
+
+- **Text Selection Detection**: Monitors `selectionchange` and `mouseup` events
+- **Shift Key Tracking**: Global keydown/keyup listeners for Shift key state
+- **Smart Positioning**: Popup positions itself near selected text, avoiding screen edges
+- **Fake Data Generator**: Generates consistent demo data based on address hash
+- **Network Theming**: Colors adapt based on detected network (Ethereum, Solana, etc.)
+
 ### Adding New Supported Sites
 
 1. **Update manifest.json**:
@@ -123,6 +159,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
            "Banner/zqb-utils.js",
            "QuickActions/quick-actions.js",
            "Banner/zqb-banner.js",
+           "TokenInfo/fake-data.js",
+           "TokenInfo/token-info.js",
            "content.js"
          ]
        }
@@ -221,6 +259,13 @@ The extension includes comprehensive error handling:
 - [ ] Test popup interface
 - [ ] Test responsive behavior
 - [ ] Test error scenarios
+- [ ] Test TokenInfo popup with Shift+select on various text types:
+  - [ ] Ethereum contract addresses (`0x...`)
+  - [ ] Solana addresses (Base58 format)
+  - [ ] Token tickers (`$DOGE`, `$BTC`, etc.)
+  - [ ] Test popup positioning on different screen sizes
+  - [ ] Test "Open in Zerion" and "Quick Buy" buttons
+  - [ ] Test network color theming
 
 ## 🔗 Related Links
 

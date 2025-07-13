@@ -745,7 +745,6 @@
 
   function refreshBanner() {
     const info = parseInfo()
-    console.log("[ZQB] parseInfo:", info)
 
     // Try multiple injection targets in order of preference
     let injectionTarget =
@@ -790,7 +789,6 @@
       return
     }
     const valid = isValidContract(info)
-    console.log("[ZQB] isValidContract:", valid)
     if (!valid) {
       // Retry a few times in case SPA navigation hasn't fully rendered yet
       if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
@@ -995,7 +993,6 @@
         subtree: true,
       })
 
-      console.log("[ZQB] Copy success observer set up for DexScreener")
     }
 
     // Start setup
