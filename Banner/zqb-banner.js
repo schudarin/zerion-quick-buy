@@ -1,8 +1,4 @@
-// Zerion Quick Buy Banner Module (Phase A)
-// During phase A we simply provide a wrapper so other scripts can call
-// `createZerionBanner(info)` while the real implementation still lives
-// in content.js.  In phase B the full banner code will be moved here and
-// `_internalBuildBanner` will be defined inside this file.
+// Zerion Quick Buy Banner Module
 
 ;(function (global) {
   if (global.createZerionBanner) return // already present
@@ -182,12 +178,8 @@
     try {
       localStorage.setItem("zqb_banner_network_color", color)
     } catch (e) {}
-    // Responsive styles
-    div.style.minWidth = "220px"
-    div.style.flexWrap = "wrap"
-    div.style.wordBreak = "break-word"
-    // Allow banner to expand naturally by setting width to fit-content initially
-    div.style.width = "fit-content"
+    // Responsive styles are now handled by CSS
+    // Default width is handled by CSS, but preserve dynamic width setting ability
     // Capitalize network
     let network = info.network
       ? info.network.charAt(0).toUpperCase() + info.network.slice(1)
@@ -279,8 +271,7 @@
     // Quick Buy button
     const btn = document.createElement("button")
     btn.className = "zqb-buy-btn"
-    btn.style.display = "flex"
-    btn.style.alignItems = "center"
+    // Display flex and align items are now handled by CSS
     // Add improved inline SVG icon to the left of the button text
     const buyIcon = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -344,9 +335,7 @@
     // Options icon (static 3-dots button)
     const optionsIconBg = document.createElement("span")
     optionsIconBg.className = "zqb-options-icon-bg"
-    optionsIconBg.style.cursor = "pointer"
-    optionsIconBg.style.position = "static"
-    // All other appearance styles are now handled by CSS only
+    // All appearance styles are now handled by CSS only
 
     // 3-dots SVG icon
     const optionsIcon = document.createElementNS(
@@ -368,8 +357,8 @@
 
     // --- Quick Buy + Options (3-dots) container ---
     const actionsContainer = document.createElement("div")
-    actionsContainer.style.display = "flex"
-    actionsContainer.style.alignItems = "center"
+    actionsContainer.className = "zqb-actions-container"
+    // Display flex and align items are now handled by CSS
     actionsContainer.appendChild(btn)
     actionsContainer.appendChild(optionsIconBg)
 
@@ -492,7 +481,7 @@
       } catch (e) {
         console.warn("[ZQB] Could not reset banner position:", e)
       }
-      div.style.width = "fit-content"
+      div.style.width = "" // Reset to CSS default (fit-content)
       // Use absolute positioning for proper centering
       setTimeout(() => {
         const bannerWidth = div.offsetWidth
@@ -539,7 +528,7 @@
         div.style.transform = "none"
         div.style.position = "fixed"
       } else {
-        div.style.width = "fit-content"
+        div.style.width = "" // Reset to CSS default (fit-content)
       }
     })
     rightHandle.addEventListener("dblclick", function (e) {
@@ -549,7 +538,7 @@
         localStorage.removeItem("zqb_banner_width")
       } catch (e) {}
       // Reset width only, left edge stays fixed
-      div.style.width = "fit-content"
+      div.style.width = "" // Reset to CSS default (fit-content)
     })
 
     let resizing = false
@@ -655,7 +644,7 @@
           localStorage.removeItem("zqb_banner_width")
           const banner = document.getElementById(BANNER_ID)
           if (banner) {
-            banner.style.width = "fit-content"
+            banner.style.width = "" // Reset to CSS default (fit-content)
             // Use absolute positioning for proper centering
             setTimeout(() => {
               const bannerWidth = banner.offsetWidth
@@ -698,26 +687,13 @@
     if (document.getElementById("zqb-about-modal")) return
     const modal = document.createElement("div")
     modal.id = "zqb-about-modal"
-    modal.style.position = "fixed"
-    modal.style.top = "50%"
-    modal.style.left = "50%"
-    modal.style.transform = "translate(-50%, -50%)"
-    modal.style.background = "#fff"
-    modal.style.color = "#222"
-    modal.style.borderRadius = "14px"
-    modal.style.boxShadow = "0 4px 32px rgba(0,0,0,0.18)"
-    modal.style.padding = "28px 32px 20px 32px"
-    modal.style.zIndex = 10050
-    modal.style.minWidth = "320px"
-    modal.style.maxWidth = "90vw"
-    modal.style.fontSize = "16px"
-    modal.style.textAlign = "center"
+    // All styling is now handled by CSS
     modal.innerHTML = `
-    <div style="font-size:22px;font-weight:700;margin-bottom:8px;">Zerion Quick Buy Banner</div>
-    <div style="margin-bottom:8px;">Version: 1.0.0</div>
-    <div style="margin-bottom:12px;">Author: Zerion Team</div>
-    <div style="margin-bottom:18px;">A browser extension that injects a smart, draggable, and customizable quick-buy banner for tokens on supported networks. Features include contract copy, quick buy, drag, resize, hide, and more. <br/><br/>For feedback or issues, use the Feedback option in the menu.</div>
-    <button id="zqb-about-close" style="margin-top:8px;padding:6px 18px;font-size:15px;border-radius:8px;border:none;background:#2063ff;color:#fff;cursor:pointer;">Close</button>
+    <div class="zqb-modal-title">Zerion Quick Buy Banner</div>
+    <div class="zqb-modal-version">Version: 1.0.0</div>
+    <div class="zqb-modal-author">Author: Zerion Team</div>
+    <div class="zqb-modal-description">A browser extension that injects a smart, draggable, and customizable quick-buy banner for tokens on supported networks. Features include contract copy, quick buy, drag, resize, hide, and more. <br/><br/>For feedback or issues, use the Feedback option in the menu.</div>
+    <button id="zqb-about-close">Close</button>
   `
     document.body.appendChild(modal)
     const closeBtn = document.getElementById("zqb-about-close")
@@ -888,8 +864,7 @@
   }
 
   function fadeOutAndRemove(el) {
-    el.style.opacity = "0"
-    el.style.transform = "translateY(-10px)"
+    el.classList.add("zqb-fade-out")
     setTimeout(() => {
       if (el.parentNode) el.parentNode.removeChild(el)
     }, 350)
@@ -1081,22 +1056,10 @@
     }
     const btn = document.createElement("div")
     btn.id = "zqb-restore-btn"
-    btn.style.position = "fixed"
-    btn.style.bottom = "24px"
-    btn.style.right = "24px"
-    btn.style.width = "56px"
-    btn.style.height = "56px"
+    // Most styling is now handled by CSS, only set dynamic background color
     btn.style.background = color
-    btn.style.borderRadius = "16px"
-    btn.style.boxShadow = "0 4px 24px rgba(0,0,0,0.18)"
-    btn.style.display = "flex"
-    btn.style.alignItems = "center"
-    btn.style.justifyContent = "center"
-    btn.style.cursor = "pointer"
-    btn.style.zIndex = 10020
     btn.style.opacity = "0"
     btn.style.transform = "translateY(100px)"
-    btn.style.transition = "opacity 0.4s, transform 0.4s"
     btn.innerHTML =
       '<svg width="28" height="28" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 20C2.23858 20 8.74228e-07 17.7614 8.74228e-07 15L0 4.99999C1.93283e-06 2.23857 2.23858 -6.11091e-06 5 -6.75517e-06L15 -7.62939e-06C17.7614 -7.62939e-06 20 2.23857 20 4.99999V15C20 17.7614 17.7614 20 15 20H5ZM11.4111 9.92248C11.884 10.1747 12.5435 10.0749 12.8674 9.62829C13.596 8.62694 14.4724 7.28567 15.2521 5.95702C15.4827 5.5638 15.2038 5.00011 14.6606 4.99999C12.493 4.99999 7.52854 5.00121 5.31555 5.00121C4.6359 5.00127 4.40403 5.86275 4.98596 6.22192C6.86926 7.38121 9.51985 8.91431 11.4111 9.92248ZM14.3073 15C14.9459 14.9999 15.214 14.1918 14.6857 13.811C12.8944 12.6938 10.5144 11.3231 8.55835 10.2661C8.08326 10.0104 7.44797 10.1059 7.05811 10.6616C6.3319 11.6969 5.46252 13.0028 4.86694 14.0314C4.61916 14.4485 4.94991 15 5.44434 15L14.3073 15Z" fill="#fff"/></svg>'
     document.body.appendChild(btn)
@@ -1115,7 +1078,7 @@
         const bottom = localStorage.getItem("zqb_banner_bottom")
         const width = localStorage.getItem("zqb_banner_width")
         if (!left && !top && !right && !bottom && !width) {
-          banner.style.width = "fit-content"
+          banner.style.width = "" // Reset to CSS default (fit-content)
           // Use absolute positioning for proper centering
           setTimeout(() => {
             const bannerWidth = banner.offsetWidth

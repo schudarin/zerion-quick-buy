@@ -27,6 +27,9 @@
     #001f3f 100%
   );
   max-width: 1200px;
+  /* Moved from JS */
+  min-width: 220px;
+  width: fit-content;
 }
 .zqb-banner::after {
   content: "";
@@ -113,6 +116,12 @@
   background: #c00;
 }
 
+/* Actions container - moved from JS */
+.zqb-actions-container {
+  display: flex;
+  align-items: center;
+}
+
 .zqb-banner .zqb-options-icon-bg {
   display: inline-flex;
   align-items: center;
@@ -120,9 +129,11 @@
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  cursor: pointer;
   z-index: 10001;
   margin-left: 8px;
+  /* Moved from JS */
+  cursor: pointer;
+  position: static;
 }
 .zqb-banner .zqb-options-icon-bg:hover {
   background: rgba(255, 255, 255, 0.25);
@@ -150,6 +161,9 @@
   transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.12s cubic-bezier(0.4, 0, 0.2, 1),
     filter 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Moved from JS */
+  display: flex;
+  align-items: center;
 }
 .zqb-banner .zqb-buy-btn:active {
   transform: translateY(2.5px);
@@ -288,6 +302,84 @@
   will-change: opacity;
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 1;
+}
+
+/* About Modal - moved from JS */
+#zqb-about-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  color: #222;
+  border-radius: 14px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
+  padding: 28px 32px 20px 32px;
+  z-index: 10050;
+  min-width: 320px;
+  max-width: 90vw;
+  font-size: 16px;
+  text-align: center;
+}
+
+#zqb-about-modal .zqb-modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#zqb-about-modal .zqb-modal-version {
+  margin-bottom: 8px;
+}
+
+#zqb-about-modal .zqb-modal-author {
+  margin-bottom: 12px;
+}
+
+#zqb-about-modal .zqb-modal-description {
+  margin-bottom: 18px;
+}
+
+#zqb-about-close {
+  margin-top: 8px;
+  padding: 6px 18px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: none;
+  background: #2063ff;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Floating Restore Button - moved from JS */
+#zqb-restore-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10020;
+  transition: opacity 0.4s, transform 0.4s;
+  /* Background color will be set dynamically via JS */
+}
+
+#zqb-restore-btn svg {
+  width: 28px;
+  height: 28px;
+  fill: #fff;
+}
+
+/* Fade out animation - moved from JS */
+.zqb-fade-out {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.35s, transform 0.35s;
 }
 
 @keyframes zqb-fade-in-up {
