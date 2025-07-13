@@ -25,7 +25,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["zerion-banner.css", "icons/banner-icons/drag-icon.svg"],
+      "resources": ["Banner/zqb-banner.css"],
       "matches": ["https://dexscreener.com/*", "https://app.interface.social/*"]
     }
   ],
@@ -35,20 +35,25 @@
         "https://dexscreener.com/*",
         "https://app.interface.social/*"
       ],
-      "js": ["zqb-utils.js", "quick-actions.js", "zqb-banner.js", "content.js"],
+      "js": [
+        "Banner/zqb-utils.js",
+        "QuickActions/quick-actions.js",
+        "Banner/zqb-banner.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     },
     {
       "matches": ["<all_urls>"],
       "js": [
-        "zqb-utils.js",
-        "quick-actions.js",
-        "zqb-banner.js",
-        "copy-listener.js"
+        "Banner/zqb-utils.js",
+        "QuickActions/quick-actions.js",
+        "Banner/zqb-banner.js",
+        "QuickActions/copy-listener.js"
       ],
       "run_at": "document_start"
     }
   ],
-  "action": { "default_popup": "popup.html" },
+  "action": { "default_popup": "Popup/popup.html" },
   "background": { "service_worker": "background.js" }
 }

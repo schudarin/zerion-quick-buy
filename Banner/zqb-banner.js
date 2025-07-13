@@ -52,7 +52,8 @@
     let correctedTop = rect.top
 
     // Handle case where banner is wider than viewport
-    if (rect.width > viewportWidth) {
+    if (rect.width > viewportWidth - 20) {
+      // Allow 10px margin on each side
       correctedLeft = 10
     } else if (isOffscreenLeft) {
       correctedLeft = 10 // 10px from left edge
@@ -112,7 +113,21 @@
   function handleWindowResize() {
     const banner = document.getElementById(BANNER_ID)
     if (banner && banner.style.display !== "none") {
-      correctBannerPosition(banner)
+      // Check if banner is in default centered position (no saved position)
+      const savedLeft = localStorage.getItem("zqb_banner_left")
+      const savedTop = localStorage.getItem("zqb_banner_top")
+
+      if (!savedLeft && !savedTop) {
+        // Re-center the banner for default position
+        const bannerWidth = banner.offsetWidth
+        const viewportWidth = window.innerWidth
+        const centeredLeft = (viewportWidth - bannerWidth) / 2
+
+        banner.style.left = centeredLeft + "px"
+      } else {
+        // For saved positions, check if it's offscreen
+        correctBannerPosition(banner)
+      }
     }
   }
 
@@ -138,7 +153,7 @@
     link.id = "zerion-banner-css"
     link.rel = "stylesheet"
     link.type = "text/css"
-    link.href = chrome.runtime.getURL("zerion-banner.css")
+    link.href = chrome.runtime.getURL("Banner/zqb-banner.css")
     document.head.appendChild(link)
   }
 
@@ -168,10 +183,11 @@
       localStorage.setItem("zqb_banner_network_color", color)
     } catch (e) {}
     // Responsive styles
-    div.style.maxWidth = "95vw"
     div.style.minWidth = "220px"
     div.style.flexWrap = "wrap"
     div.style.wordBreak = "break-word"
+    // Allow banner to expand naturally by setting width to fit-content initially
+    div.style.width = "fit-content"
     // Capitalize network
     let network = info.network
       ? info.network.charAt(0).toUpperCase() + info.network.slice(1)
@@ -444,9 +460,28 @@
       div.style.position = "fixed"
 
       // Check and correct position if offscreen after a brief delay to ensure banner is rendered
+      // Only correct position if banner is actually offscreen, don't preemptively constrain
       setTimeout(() => {
-        correctBannerPosition(div)
+        const rect = div.getBoundingClientRect()
+        const viewportWidth = window.innerWidth
+        // Only correct if actually going off-screen with some buffer
+        if (rect.left < 10 || rect.right > viewportWidth - 10) {
+          correctBannerPosition(div)
+        }
       }, 100)
+    } else {
+      // For default centered position, use absolute positioning to avoid transform issues with fit-content
+      setTimeout(() => {
+        const bannerWidth = div.offsetWidth
+        const viewportWidth = window.innerWidth
+        const centeredLeft = (viewportWidth - bannerWidth) / 2
+
+        div.style.left = centeredLeft + "px"
+        div.style.right = "auto"
+        div.style.bottom = "24px"
+        div.style.transform = "none"
+        div.style.position = "fixed"
+      }, 10) // Small delay to ensure the banner is rendered and width is calculated
     }
     // Remove reset button, add double-click to reset position and width on banner
     div.addEventListener("dblclick", function () {
@@ -457,13 +492,20 @@
       } catch (e) {
         console.warn("[ZQB] Could not reset banner position:", e)
       }
-      div.style.left = "50%"
-      div.style.top = ""
-      div.style.right = ""
-      div.style.bottom = "24px"
-      div.style.transform = "translateX(-50%)"
-      div.style.position = "fixed"
-      div.style.width = ""
+      div.style.width = "fit-content"
+      // Use absolute positioning for proper centering
+      setTimeout(() => {
+        const bannerWidth = div.offsetWidth
+        const viewportWidth = window.innerWidth
+        const centeredLeft = (viewportWidth - bannerWidth) / 2
+
+        div.style.left = centeredLeft + "px"
+        div.style.top = ""
+        div.style.right = "auto"
+        div.style.bottom = "24px"
+        div.style.transform = "none"
+        div.style.position = "fixed"
+      }, 10)
     })
     // --- Add horizontal resize handles ---
     const leftHandle = document.createElement("div")
@@ -497,7 +539,7 @@
         div.style.transform = "none"
         div.style.position = "fixed"
       } else {
-        div.style.width = ""
+        div.style.width = "fit-content"
       }
     })
     rightHandle.addEventListener("dblclick", function (e) {
@@ -507,7 +549,7 @@
         localStorage.removeItem("zqb_banner_width")
       } catch (e) {}
       // Reset width only, left edge stays fixed
-      div.style.width = ""
+      div.style.width = "fit-content"
     })
 
     let resizing = false
@@ -613,13 +655,20 @@
           localStorage.removeItem("zqb_banner_width")
           const banner = document.getElementById(BANNER_ID)
           if (banner) {
-            banner.style.left = "50%"
-            banner.style.top = ""
-            banner.style.right = ""
-            banner.style.bottom = "24px"
-            banner.style.transform = "translateX(-50%)"
-            banner.style.position = "fixed"
-            banner.style.width = ""
+            banner.style.width = "fit-content"
+            // Use absolute positioning for proper centering
+            setTimeout(() => {
+              const bannerWidth = banner.offsetWidth
+              const viewportWidth = window.innerWidth
+              const centeredLeft = (viewportWidth - bannerWidth) / 2
+
+              banner.style.left = centeredLeft + "px"
+              banner.style.top = ""
+              banner.style.right = "auto"
+              banner.style.bottom = "24px"
+              banner.style.transform = "none"
+              banner.style.position = "fixed"
+            }, 10)
           }
           const menuBtn = banner?.querySelector(".zqb-options-icon-bg")
           if (menuBtn) {
@@ -1066,13 +1115,20 @@
         const bottom = localStorage.getItem("zqb_banner_bottom")
         const width = localStorage.getItem("zqb_banner_width")
         if (!left && !top && !right && !bottom && !width) {
-          banner.style.left = "50%"
-          banner.style.top = ""
-          banner.style.right = ""
-          banner.style.bottom = "24px"
-          banner.style.transform = "translateX(-50%)"
-          banner.style.position = "fixed"
-          banner.style.width = ""
+          banner.style.width = "fit-content"
+          // Use absolute positioning for proper centering
+          setTimeout(() => {
+            const bannerWidth = banner.offsetWidth
+            const viewportWidth = window.innerWidth
+            const centeredLeft = (viewportWidth - bannerWidth) / 2
+
+            banner.style.left = centeredLeft + "px"
+            banner.style.top = ""
+            banner.style.right = "auto"
+            banner.style.bottom = "24px"
+            banner.style.transform = "none"
+            banner.style.position = "fixed"
+          }, 10)
         }
         banner.style.display = ""
         // Force reflow before animating

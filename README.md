@@ -24,15 +24,18 @@ zerion-inj/
 ├── manifest.json           # Extension manifest (permissions, content scripts, etc.)
 ├── background.js           # Service worker for message handling and context menus
 ├── content.js             # Main content script with grain texture injection
-├── popup.html             # Extension popup interface
-├── popup.js               # Popup logic and UI handling
-├── popup.css              # Popup styling
-├── quick-actions.js       # Shared quick actions overlay functionality
-├── copy-listener.js       # Detects copied contract addresses globally
-├── zqb-banner.js          # Banner creation and management (1100+ lines)
-├── zqb-utils.js           # Shared utilities (parseInfo, isValidContract)
-├── zerion-banner.css      # Banner styling and animations
-└── icons/                 # Extension icons (16px, 32px, 48px, 128px)
+├── Banner/
+│   ├── zqb-banner.js       # Banner creation and management (1100+ lines)
+│   ├── zqb-utils.js        # Shared utilities (parseInfo, isValidContract)
+│   └── zqb-banner.css      # Banner styling and animations
+├── Popup/
+│   ├── popup.html          # Extension popup interface
+│   ├── popup.js            # Popup logic and UI handling
+│   └── popup.css           # Popup styling
+├── QuickActions/
+│   ├── quick-actions.js    # Shared quick actions overlay functionality
+│   └── copy-listener.js    # Detects copied contract addresses globally
+└── icons/                  # Extension icons (16px, 32px, 48px, 128px)
 ```
 
 ## 🏗️ Architecture Overview
@@ -49,17 +52,17 @@ zerion-inj/
 #### 2. **Content Scripts**
 
 - **Main Content Script** (`content.js`): Injects grain texture, handles page-specific logic
-- **Banner Module** (`zqb-banner.js`): Creates and manages the Zerion banner UI
-- **Copy Listener** (`copy-listener.js`): Detects contract address copying on all websites
-- **Quick Actions** (`quick-actions.js`): Provides floating action window
+- **Banner Module** (`Banner/zqb-banner.js`): Creates and manages the Zerion banner UI
+- **Copy Listener** (`QuickActions/copy-listener.js`): Detects contract address copying on all websites
+- **Quick Actions** (`QuickActions/quick-actions.js`): Provides floating action window
 
 #### 3. **Popup Interface**
 
-- **HTML** (`popup.html`): Clean, modern interface for token interactions
-- **JavaScript** (`popup.js`): Handles form submission and token info display
-- **CSS** (`popup.css`): Modern styling with gradients and animations
+- **HTML** (`Popup/popup.html`): Clean, modern interface for token interactions
+- **JavaScript** (`Popup/popup.js`): Handles form submission and token info display
+- **CSS** (`Popup/popup.css`): Modern styling with gradients and animations
 
-#### 4. **Utilities** (`zqb-utils.js`)
+#### 4. **Utilities** (`Banner/zqb-utils.js`)
 
 - **Token Parsing**: Extracts token info from URLs and DOM
 - **Validation**: Validates contract addresses for different networks
@@ -72,7 +75,7 @@ zerion-inj/
 #### Token Information Parsing
 
 ```javascript
-// From zqb-utils.js
+// From Banner/zqb-utils.js
 const tokenInfo = parseInfo() // Returns { network, contract, name, symbol }
 const isValid = isValidContract(tokenInfo) // Validates token info
 ```
@@ -80,14 +83,14 @@ const isValid = isValidContract(tokenInfo) // Validates token info
 #### Banner Creation
 
 ```javascript
-// From zqb-banner.js
+// From Banner/zqb-banner.js
 createZerionBanner(tokenInfo) // Creates and injects banner
 ```
 
 #### Quick Actions
 
 ```javascript
-// From quick-actions.js
+// From QuickActions/quick-actions.js
 window.injectQuickActionsWindow(contractAddress) // Shows floating actions
 ```
 
@@ -117,9 +120,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
        {
          "matches": ["https://newsite.com/*"],
          "js": [
-           "zqb-utils.js",
-           "quick-actions.js",
-           "zqb-banner.js",
+           "Banner/zqb-utils.js",
+           "QuickActions/quick-actions.js",
+           "Banner/zqb-banner.js",
            "content.js"
          ]
        }
@@ -127,7 +130,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
    }
    ```
 
-2. **Update parsing logic** in `zqb-utils.js`:
+2. **Update parsing logic** in `Banner/zqb-utils.js`:
    ```javascript
    if (host === "newsite.com") {
      // Add parsing logic for the new site
