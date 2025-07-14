@@ -14,7 +14,6 @@
     "https://dexscreener.com/solana/*",
     "https://dexscreener.com/base/*",
     "https://dexscreener.com/ethereum/*",
-    "https://api.dexscreener.com/*",
     "https://app.interface.social/token/*"
   ],
   "icons": {
@@ -26,7 +25,11 @@
   "web_accessible_resources": [
     {
       "resources": ["Banner/zqb-banner.css", "TokenInfo/token-info.css"],
-      "matches": ["https://dexscreener.com/*", "https://app.interface.social/*"]
+      "matches": [
+        "https://dexscreener.com/*",
+        "https://app.interface.social/*",
+        "https://x.com/*"
+      ]
     },
     {
       "resources": ["TokenInfo/token-info.css"],

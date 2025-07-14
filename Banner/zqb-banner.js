@@ -1,7 +1,7 @@
 // Zerion Quick Buy Banner Module
 
 ;(function (global) {
-  if (global.createZerionBanner) return // already present
+  if (global.createZerionBanner) return
 
   // Local fallback constants if not already defined globally (content.js defines them as well)
   const WATCH = global.WATCH || 500
@@ -52,18 +52,18 @@
       // Allow 10px margin on each side
       correctedLeft = 10
     } else if (isOffscreenLeft) {
-      correctedLeft = 10 // 10px from left edge
+      correctedLeft = 10 
     } else if (isOffscreenRight) {
-      correctedLeft = viewportWidth - rect.width - 10 // 10px from right edge
+      correctedLeft = viewportWidth - rect.width - 10 
     }
 
     // Handle case where banner is taller than viewport
     if (rect.height > viewportHeight) {
       correctedTop = 10
     } else if (isOffscreenTop) {
-      correctedTop = 10 // 10px from top edge
+      correctedTop = 10 
     } else if (isOffscreenBottom) {
-      correctedTop = viewportHeight - rect.height - 10 // 10px from bottom edge
+      correctedTop = viewportHeight - rect.height - 10 
     }
 
     return {
@@ -179,14 +179,20 @@
       localStorage.setItem("zqb_banner_network_color", color)
     } catch (e) {}
     // Responsive styles are now handled by CSS
-    // Default width is handled by CSS, but preserve dynamic width setting ability
     // Capitalize network
     let network = info.network
       ? info.network.charAt(0).toUpperCase() + info.network.slice(1)
       : ""
     // Build info line: name, ticker, network, contract link, copy button
-    const infoLine = document.createElement("span")
-    infoLine.className = "zqb-info-line"
+
+    // Dot between name and network
+    const dot1 = document.createElement("span")
+    dot1.className = "zqb-dot1"
+    dot1.textContent = "·"
+    const dot2 = document.createElement("span")
+    dot2.className = "zqb-dot1"
+    dot2.textContent = "·"
+
     // Name and ticker
     const nameSpan = document.createElement("span")
     nameSpan.className = "zqb-name"
@@ -199,22 +205,12 @@
       nameAndTicker = info.symbol
     }
     nameSpan.textContent = nameAndTicker
-    infoLine.appendChild(nameSpan)
-    // Dot between name and network
-    const dot1 = document.createElement("span")
-    dot1.className = "zqb-dot"
-    dot1.textContent = "·"
-    infoLine.appendChild(dot1)
+
     // Network
     const networkSpan = document.createElement("span")
     networkSpan.className = "zqb-network"
     networkSpan.textContent = network
-    infoLine.appendChild(networkSpan)
-    // Dot between network and contract
-    const dot2 = document.createElement("span")
-    dot2.className = "zqb-dot"
-    dot2.textContent = "·"
-    infoLine.appendChild(dot2)
+
     // Contract link
     const zerionLink = document.createElement("a")
     zerionLink.className = "zqb-link"
@@ -259,20 +255,42 @@
           }, 1500)
         })
     }
-    // Contract link
+
+    // Build Info Line
+
+    // Info container
+    const infoSpan = document.createElement("span")
+    infoSpan.className = "zqb-info"
+
+    // Token Name, Network container
+    const tokenName = document.createElement("span")
+    tokenName.className = "zqb-token"
+
+    // Contract link and copy button container
     const contractSpan = document.createElement("span")
     contractSpan.className = "zqb-contract"
+
+    // Token Name, Network, and Contract
+    tokenName.appendChild(nameSpan)
+    tokenName.appendChild(dot1)
+    tokenName.appendChild(networkSpan)
+    tokenName.appendChild(dot2)
+
+    // Contract link and copy button
     contractSpan.appendChild(zerionLink)
-    // Arrow (not part of link)
     contractSpan.appendChild(arrow)
-    infoLine.appendChild(contractSpan)
-    // Copy button (immediately after contract/arrow)
-    infoLine.appendChild(copyBtn)
+    contractSpan.appendChild(copyBtn)
+
+    // Add info container to banner
+    infoSpan.appendChild(tokenName)
+    infoSpan.appendChild(contractSpan)
+
+    // Add info container to banner
+    div.appendChild(infoSpan)
+
     // Quick Buy button
     const btn = document.createElement("button")
     btn.className = "zqb-buy-btn"
-    // Display flex and align items are now handled by CSS
-    // Add improved inline SVG icon to the left of the button text
     const buyIcon = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "svg"
@@ -363,7 +381,6 @@
     actionsContainer.appendChild(optionsIconBg)
 
     // When appending to the banner, place actionsContainer instead of btn and optionsIconBg
-    div.appendChild(infoLine)
     div.appendChild(actionsContainer)
 
     // Prevent move when clicking Quick Buy or Options or Copy
@@ -421,16 +438,18 @@
     }
     document.addEventListener("mousemove", onMouseMove)
     document.addEventListener("mouseup", onMouseUp)
-    // Responsive: adjust layout on small screens
+    // Responsive: adjust layout when banner is resized too small
     function applyResponsive() {
-      if (window.innerWidth < 500) {
+      const bannerWidth = div.offsetWidth
+      // If banner width is too small for horizontal layout, switch to vertical
+      if (bannerWidth < 350) {
         div.classList.add("responsive")
       } else {
         div.classList.remove("responsive")
       }
     }
-    applyResponsive()
-    window.addEventListener("resize", applyResponsive)
+    // Apply responsive after a small delay to ensure banner is rendered
+    setTimeout(applyResponsive, 50)
     window.addEventListener("resize", handleWindowResize)
     // Restore position from localStorage if present
     let savedLeft, savedTop
@@ -494,6 +513,8 @@
         div.style.bottom = "24px"
         div.style.transform = "none"
         div.style.position = "fixed"
+        // Check responsive state after reset with additional delay for reflow
+        setTimeout(() => applyResponsive(), 50)
       }, 10)
     })
     // --- Add horizontal resize handles ---
@@ -530,6 +551,8 @@
       } else {
         div.style.width = "" // Reset to CSS default (fit-content)
       }
+      // Check responsive state after width reset
+      setTimeout(() => applyResponsive(), 50)
     })
     rightHandle.addEventListener("dblclick", function (e) {
       e.stopPropagation()
@@ -539,6 +562,8 @@
       } catch (e) {}
       // Reset width only, left edge stays fixed
       div.style.width = "" // Reset to CSS default (fit-content)
+      // Check responsive state after width reset
+      setTimeout(() => applyResponsive(), 50)
     })
 
     let resizing = false
@@ -581,6 +606,8 @@
         div.style.transform = "none"
         div.style.position = "fixed"
       }
+      // Check if we need to apply responsive layout
+      applyResponsive()
     }
     function onResizeMouseUp() {
       if (resizing) {
@@ -591,6 +618,8 @@
         try {
           localStorage.setItem("zqb_banner_width", div.style.width)
         } catch (e) {}
+        // Final responsive check after resize
+        applyResponsive()
       }
     }
     document.addEventListener("mousemove", onResizeMouseMove)
@@ -603,6 +632,8 @@
     } catch (e) {}
     if (savedWidth) {
       div.style.width = savedWidth
+      // Check responsive state for restored width
+      setTimeout(() => applyResponsive(), 100)
     }
     return div
   }
@@ -657,6 +688,15 @@
               banner.style.bottom = "24px"
               banner.style.transform = "none"
               banner.style.position = "fixed"
+              // Check responsive state after reset with additional delay for reflow
+              setTimeout(() => {
+                const bannerWidth = banner.offsetWidth
+                if (bannerWidth < 350) {
+                  banner.classList.add("responsive")
+                } else {
+                  banner.classList.remove("responsive")
+                }
+              }, 50)
             }, 10)
           }
           const menuBtn = banner?.querySelector(".zqb-options-icon-bg")
@@ -992,7 +1032,6 @@
         childList: true,
         subtree: true,
       })
-
     }
 
     // Start setup

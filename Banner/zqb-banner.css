@@ -11,7 +11,7 @@
   font-size: 16px;
   font-weight: 500;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   box-sizing: border-box;
   border-radius: 20px;
@@ -27,7 +27,6 @@
     #001f3f 100%
   );
   max-width: 1200px;
-  /* Moved from JS */
   min-width: 220px;
   width: fit-content;
 }
@@ -47,27 +46,35 @@
   z-index: 2;
 }
 .zqb-banner.responsive {
+  font-size: 18px;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   padding: 16px 16px;
-  gap: 12px;
-  width: 100%;
+  gap: 12px !important;
 }
 
-/* Info line layout */
-.zqb-info-line {
+/* Info container */
+.zqb-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Token info layout */
+.zqb-token {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex-wrap: wrap;
+  color: #fff;
+  font-size: 16px;
 }
 .zqb-name {
   font-weight: 600;
 }
 .zqb-dot {
-  margin: 0 6px;
-  color: #fff;
-  font-size: 16px;
   user-select: none;
 }
 .zqb-contract-arrow {
@@ -79,6 +86,14 @@
   display: inline-block;
 }
 
+.zqb-contract {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  word-break: keep-all;
+}
+
 /* Contract link */
 .zqb-banner .zqb-link {
   color: #fff;
@@ -86,7 +101,6 @@
   font-size: 16px;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
 }
 
 /* Copy button */
@@ -116,10 +130,11 @@
   background: #c00;
 }
 
-/* Actions container - moved from JS */
+/* Actions container */
 .zqb-actions-container {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .zqb-banner .zqb-options-icon-bg {
@@ -130,7 +145,7 @@
   height: 36px;
   border-radius: 12px;
   z-index: 10001;
-  margin-left: 8px;
+
   /* Moved from JS */
   cursor: pointer;
   position: static;
@@ -164,15 +179,22 @@
   /* Moved from JS */
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 .zqb-banner .zqb-buy-btn:active {
   transform: translateY(2.5px);
   box-shadow: 0 1px 2px rgba(32, 99, 255, 0.08), 0 0.5px 1px rgba(0, 0, 0, 0.25);
   filter: brightness(0.96) contrast(1.1);
 }
-.zqb-banner.responsive .zqb-buy-btn {
+.zqb-banner.responsive .zqb-actions-container {
   width: 100%;
-  margin-left: 0;
+  justify-content: center;
+}
+
+.zqb-banner.responsive .zqb-buy-btn {
+  flex: 1;
+  min-width: 180px;
+  max-width: 100%;
 }
 
 .zqb-buy-btn-icon {
@@ -304,7 +326,7 @@
   opacity: 1;
 }
 
-/* About Modal - moved from JS */
+/* About Modal */
 #zqb-about-modal {
   position: fixed;
   top: 50%;
