@@ -17,6 +17,18 @@ window.addEventListener("message", (event) => {
       console.warn("[TokenInfo] tokenInfoPopup not available")
     }
   }
+  
+  if (event?.data?.type === "SHOW_WALLET_INFO_POPUP" && event.data.text) {
+    console.log("[WalletInfo] Received SHOW_WALLET_INFO_POPUP:", event.data.text)
+    if (
+      window.walletInfoPopup &&
+      typeof window.walletInfoPopup.createPopup === "function"
+    ) {
+      window.walletInfoPopup.createPopup(event.data.text)
+    } else {
+      console.warn("[WalletInfo] walletInfoPopup not available")
+    }
+  }
 })
 
 // --- Constants ---

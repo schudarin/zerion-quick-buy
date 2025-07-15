@@ -53,9 +53,17 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   delete tabTokenCache[tabId]
 })
 
-// === Context Menu for Contract Addresses ===
+// === Context Menu for Contract Addresses and ENS Names ===
 const CONTRACT_REGEX = /^0x[a-fA-F0-9]{40}$/
+const ENS_REGEX = /^[a-z0-9-]+\.eth$/i
+const ENS_SUBDOMAIN_REGEX = /^[a-z0-9-]+\.[a-z0-9-]+\.eth$/i
 const CHAIN = "ethereum" // You can make this dynamic if needed
+
+function isValidEnsName(text) {
+  if (!text || text.length < 5) return false
+  text = text.trim().toLowerCase()
+  return ENS_REGEX.test(text) || ENS_SUBDOMAIN_REGEX.test(text)
+}
 
 // Create context menu on install or update
 chrome.runtime.onInstalled.addListener(() => {
@@ -95,19 +103,62 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "View on DexScreener",
     contexts: ["selection"],
   })
+  
+  // Wallet Info menu items
+  chrome.contextMenus.create({
+    id: "zerion-wallet-info",
+    parentId: "zerion-root",
+    title: "Get Wallet Info",
+    contexts: ["selection"],
+  })
+  chrome.contextMenus.create({
+    id: "zerion-wallet-profile",
+    parentId: "zerion-root",
+    title: "Open Wallet in Zerion",
+    contexts: ["selection"],
+  })
 })
 
 // Handle menu actions
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const contract = info.selectionText && info.selectionText.trim()
-  if (info.menuItemId === "zerion-getinfo") {
-    // Send message to content script to show token info popup
+  const selectedText = info.selectionText && info.selectionText.trim()
+  
+  // Handle wallet info popup
+  if (info.menuItemId === "zerion-wallet-info") {
     chrome.tabs.sendMessage(tab.id, {
-      type: "SHOW_TOKEN_INFO_POPUP",
-      text: contract,
+      type: "SHOW_WALLET_INFO_POPUP",
+      text: selectedText,
     })
     return
   }
+  
+  // Handle wallet profile opening
+  if (info.menuItemId === "zerion-wallet-profile") {
+    if (!selectedText || !isValidEnsName(selectedText)) {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon-48.png",
+        title: "Zerion",
+        message: "Please select a valid ENS name (xxx.eth)",
+      })
+      return
+    }
+    const url = `https://app.zerion.io/profile/${selectedText.toLowerCase()}`
+    chrome.tabs.create({ url })
+    return
+  }
+  
+  // Handle token info popup
+  if (info.menuItemId === "zerion-getinfo") {
+    chrome.tabs.sendMessage(tab.id, {
+      type: "SHOW_TOKEN_INFO_POPUP",
+      text: selectedText,
+    })
+    return
+  }
+  
+  // For contract-specific actions, validate contract address
+  const contract = selectedText
   if (!contract || !CONTRACT_REGEX.test(contract)) {
     chrome.notifications.create({
       type: "basic",
