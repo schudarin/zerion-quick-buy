@@ -237,7 +237,7 @@ This allows the extension to work seamlessly across different sites that use dif
 
 ### Responsive Behavior
 
-- **Mobile-friendly**: Adapts to smaller screens
+- **Narrow-Screens-friendly**: Adapts to smaller screens
 - **Flexible Layout**: Wraps content on narrow viewports
 - **Touch-friendly**: Appropriate button sizes and spacing
 
