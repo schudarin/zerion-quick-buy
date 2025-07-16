@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Quick Buy with Zerion",
   "description": "Adds a Zerion Quick Buy banner on supported token pages for streamlined swaps.",
-  "version": "1.6",
+  "version": "5.6",
   "permissions": [
     "activeTab",
     "tabs",

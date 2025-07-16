@@ -730,8 +730,8 @@
     // All styling is now handled by CSS
     modal.innerHTML = `
     <div class="zqb-modal-title">Zerion Quick Buy Banner</div>
-    <div class="zqb-modal-version">Version: 1.0.0</div>
-    <div class="zqb-modal-author">Author: Zerion Team</div>
+    <div class="zqb-modal-version">Version: 5.6</div>
+    <div class="zqb-modal-author">Author: Figma Boy</div>
     <div class="zqb-modal-description">A browser extension that injects a smart, draggable, and customizable quick-buy banner for tokens on supported networks. Features include contract copy, quick buy, drag, resize, hide, and more. <br/><br/>For feedback or issues, use the Feedback option in the menu.</div>
     <button id="zqb-about-close">Close</button>
   `

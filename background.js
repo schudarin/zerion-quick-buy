@@ -54,8 +54,15 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 })
 
 // === Context Menu for Contract Addresses ===
-const CONTRACT_REGEX = /^0x[a-fA-F0-9]{40}$/
-const CHAIN = "ethereum" // You can make this dynamic if needed
+const ETHEREUM_REGEX = /^0x[a-fA-F0-9]{40}$/
+const SOLANA_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
+
+// Helper function to validate contract addresses for supported networks
+function isValidContract(address) {
+  if (!address || typeof address !== 'string') return false
+  const trimmed = address.trim()
+  return ETHEREUM_REGEX.test(trimmed) || SOLANA_REGEX.test(trimmed)
+}
 
 // Create context menu on install or update
 chrome.runtime.onInstalled.addListener(() => {
@@ -108,12 +115,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     })
     return
   }
-  if (!contract || !CONTRACT_REGEX.test(contract)) {
+  if (!isValidContract(contract)) {
     chrome.notifications.create({
       type: "basic",
       iconUrl: "icons/icon-48.png",
       title: "Zerion",
-      message: "Please select a valid contract address (0x...)",
+      message: "Please select a valid contract address (0x... for Ethereum/Base or Solana address)",
     })
     return
   }
