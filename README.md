@@ -1,6 +1,6 @@
 # Quick Buy with Zerion - Browser Extension
 
-> Built at **The Glow Up**, Zerion's internal two-day hackathon. Won two nominations: Best Participant and Best Viber.
+> Built at **The Glow Up**, Zerion's internal two-day hackathon, July 2025. Won two nominations: Best Participant and Best Viber.
 
 A Chrome browser extension that adds Zerion quick buy functionality to cryptocurrency token pages, providing streamlined access to token swaps and information.
 
